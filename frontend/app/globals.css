@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --zoom-primary: #2d8cff;
+  --zoom-dark-blue: #0e71eb;
+  --zoom-orange: #f5a623;
+  --zoom-bg-light: #f7f7f7;
+  --zoom-card: #ffffff;
+  --zoom-room-dark: #1a1a1a;
+  --zoom-control-bar: #2d2d2d;
+  --zoom-text-primary: #1a1a1a;
+  --zoom-text-secondary: #747487;
+  --zoom-border: #e0e0e0;
+  --zoom-surface-muted: #e8e8ed;
+}
+
+.dark {
+  --zoom-bg-light: #1a1a1a;
+  --zoom-card: #2c2c2c;
+  --zoom-text-primary: #f7f7f7;
+  --zoom-text-secondary: #a0a0b0;
+  --zoom-border: #3d3d3d;
+  --zoom-surface-muted: #3d3d3d;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  color: var(--zoom-text-primary);
+  background-color: var(--zoom-bg-light);
+  overflow-x: hidden;
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  }
+
+  .min-h-dvh {
+    min-height: 100dvh;
+  }
+
+  .h-dvh {
+    height: 100dvh;
+  }
+}
