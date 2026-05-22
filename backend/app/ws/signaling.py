@@ -2,9 +2,12 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
-from app.ws.room_manager import PeerInfo, room_manager
+from app.ws.chat import new_message_id, utc_now_iso, validate_message
+from app.ws.room_manager import ChatMessage, PeerInfo, room_manager
 
 router = APIRouter()
+
+MAX_CHAT_HISTORY = 200
 
 
 @router.websocket("/ws/{meeting_code}")
@@ -105,7 +108,60 @@ async def signaling_endpoint(
                             {"type": "peer-left", "peerId": target_id},
                         )
 
+            elif msg_type == "join-meeting-chat":
+                if room_manager.join_meeting_chat(meeting_code, peer_id):
+                    history = room_manager.get_chat_history(meeting_code)
+                    await websocket.send_json(
+                        {
+                            "type": "chat-history",
+                            "messages": [
+                                room_manager.chat_message_to_dict(m)
+                                for m in history
+                            ],
+                        }
+                    )
+
+            elif msg_type == "send-message":
+                if not room_manager.get_peers(meeting_code).get(peer_id):
+                    await websocket.send_json(
+                        {
+                            "type": "chat-error",
+                            "error": "Not in meeting room",
+                        }
+                    )
+                    continue
+
+                ok, sanitized, err = validate_message(data.get("text"))
+                if not ok:
+                    await websocket.send_json(
+                        {"type": "chat-error", "error": err or "Invalid message"}
+                    )
+                    continue
+
+                chat_msg = ChatMessage(
+                    id=new_message_id(),
+                    sender_peer_id=peer_id,
+                    sender_name=peer.name,
+                    text=sanitized,
+                    timestamp=utc_now_iso(),
+                )
+                room_manager.add_chat_message(
+                    meeting_code, chat_msg, max_history=MAX_CHAT_HISTORY
+                )
+
+                await room_manager.broadcast(
+                    meeting_code,
+                    {
+                        "type": "receive-message",
+                        "message": room_manager.chat_message_to_dict(chat_msg),
+                    },
+                )
+
+            elif msg_type == "leave-meeting-chat":
+                room_manager.leave_meeting_chat(meeting_code, peer_id)
+
     except WebSocketDisconnect:
+        room_manager.leave_meeting_chat(meeting_code, peer_id)
         if room_manager.remove_peer(meeting_code, peer_id):
             await room_manager.broadcast(
                 meeting_code,

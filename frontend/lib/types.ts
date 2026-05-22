@@ -40,3 +40,11 @@ export interface MeetingParticipant {
   isLocal: boolean;
   muted: boolean;
 }
+
+export interface ChatMessage {
+  id: string;
+  senderPeerId: string;
+  senderName: string;
+  text: string;
+  timestamp: string;
+}

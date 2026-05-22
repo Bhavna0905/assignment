@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from fastapi import WebSocket
 
@@ -11,12 +11,23 @@ class PeerInfo:
     websocket: WebSocket
     muted: bool = False
     camera_off: bool = False
+    in_meeting_chat: bool = False
+
+
+@dataclass
+class ChatMessage:
+    id: str
+    sender_peer_id: str
+    sender_name: str
+    text: str
+    timestamp: str
 
 
 class RoomManager:
     def __init__(self):
         self._rooms: Dict[str, Dict[str, PeerInfo]] = {}
         self._host_peer_id: Dict[str, str] = {}
+        self._chat_history: Dict[str, List[ChatMessage]] = {}
 
     def add_peer(self, code: str, peer: PeerInfo):
         if code not in self._rooms:
@@ -30,9 +41,48 @@ class RoomManager:
             removed = True
             if not self._rooms[code]:
                 del self._rooms[code]
+                self.clear_chat(code)
         if self._host_peer_id.get(code) == peer_id:
             del self._host_peer_id[code]
         return removed
+
+    def clear_chat(self, code: str) -> None:
+        self._chat_history.pop(code, None)
+
+    def join_meeting_chat(self, code: str, peer_id: str) -> bool:
+        peers = self._rooms.get(code, {})
+        peer = peers.get(peer_id)
+        if not peer:
+            return False
+        peer.in_meeting_chat = True
+        return True
+
+    def leave_meeting_chat(self, code: str, peer_id: str) -> None:
+        peers = self._rooms.get(code, {})
+        peer = peers.get(peer_id)
+        if peer:
+            peer.in_meeting_chat = False
+
+    def get_chat_history(self, code: str) -> List[ChatMessage]:
+        return list(self._chat_history.get(code, []))
+
+    def add_chat_message(
+        self, code: str, message: ChatMessage, max_history: int = 200
+    ) -> None:
+        if code not in self._chat_history:
+            self._chat_history[code] = []
+        self._chat_history[code].append(message)
+        if len(self._chat_history[code]) > max_history:
+            self._chat_history[code] = self._chat_history[code][-max_history:]
+
+    def chat_message_to_dict(self, message: ChatMessage) -> dict:
+        return {
+            "id": message.id,
+            "senderPeerId": message.sender_peer_id,
+            "senderName": message.sender_name,
+            "text": message.text,
+            "timestamp": message.timestamp,
+        }
 
     def register_host(self, code: str, peer_id: str) -> None:
         if code not in self._host_peer_id:

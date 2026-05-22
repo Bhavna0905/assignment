@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  MessageSquare,
   Mic,
   MicOff,
   Monitor,
@@ -28,6 +29,9 @@ interface MeetingControlsProps {
   onMuteAll: () => void;
   onRemoveParticipant: (peerId: string) => void;
   onLeave: () => void;
+  chatOpen: boolean;
+  chatUnreadCount: number;
+  onToggleChat: () => void;
 }
 
 function ControlButton({
@@ -78,6 +82,9 @@ export default function MeetingControls({
   onMuteAll,
   onRemoveParticipant,
   onLeave,
+  chatOpen,
+  chatUnreadCount,
+  onToggleChat,
 }: MeetingControlsProps) {
   const [participantsOpen, setParticipantsOpen] = useState(false);
 
@@ -125,6 +132,23 @@ export default function MeetingControls({
             <Monitor className="h-5 w-5" />
           )}
         </ControlButton>
+
+        <button
+          type="button"
+          onClick={onToggleChat}
+          aria-label="Meeting chat"
+          aria-expanded={chatOpen}
+          className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition hover:bg-[#3D3D3D] ${
+            chatOpen ? "bg-[#3D3D3D]" : ""
+          }`}
+        >
+          <MessageSquare className="h-5 w-5" />
+          {chatUnreadCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold">
+              {chatUnreadCount > 9 ? "9+" : chatUnreadCount}
+            </span>
+          )}
+        </button>
 
         <div className="relative shrink-0">
           <button
@@ -199,6 +223,24 @@ export default function MeetingControls({
               <Monitor className="h-5 w-5" />
             )}
           </ControlButton>
+
+          <button
+            type="button"
+            onClick={onToggleChat}
+            aria-label="Meeting chat"
+            aria-expanded={chatOpen}
+            className={`relative flex h-11 items-center gap-1.5 rounded-full px-3 text-sm text-white transition hover:bg-[#3D3D3D] ${
+              chatOpen ? "bg-[#3D3D3D]" : ""
+            }`}
+          >
+            <MessageSquare className="h-5 w-5" />
+            <span className="hidden md:inline">Chat</span>
+            {chatUnreadCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold">
+                {chatUnreadCount > 9 ? "9+" : chatUnreadCount}
+              </span>
+            )}
+          </button>
 
           <div className="relative">
             <button

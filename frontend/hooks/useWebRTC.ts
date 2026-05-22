@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getWsBase } from "@/lib/env";
-import type { MeetingParticipant } from "@/lib/types";
+import { parseChatMessage, parseChatMessages } from "@/lib/chat";
+import type { ChatMessage, MeetingParticipant } from "@/lib/types";
 
 function buildIceServers(): RTCIceServer[] {
   const servers: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
@@ -30,7 +31,8 @@ export function useWebRTC(
   displayName: string,
   enabled: boolean,
   isMeetingHost = false,
-  onKicked?: () => void
+  onKicked?: () => void,
+  chatPanelOpen = false
 ) {
   const router = useRouter();
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
@@ -41,7 +43,12 @@ export function useWebRTC(
   const [isHost, setIsHost] = useState(isMeetingHost);
   const [participants, setParticipants] = useState<MeetingParticipant[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const [myPeerId, setMyPeerId] = useState("");
   const onKickedRef = useRef(onKicked);
+  const chatPanelOpenRef = useRef(chatPanelOpen);
   const [connectAttempt, setConnectAttempt] = useState(0);
 
   const pcMap = useRef<Map<string, RTCPeerConnection>>(new Map());
@@ -64,6 +71,9 @@ export function useWebRTC(
     cameraTrackRef.current = null;
     setLocalStream(null);
     if (wsRef.current) {
+      if (wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: "leave-meeting-chat" }));
+      }
       wsRef.current.onmessage = null;
       wsRef.current.onerror = null;
       wsRef.current.onclose = null;
@@ -71,6 +81,10 @@ export function useWebRTC(
       wsRef.current = null;
     }
     setPeers(new Map());
+    setChatMessages([]);
+    setChatUnreadCount(0);
+    setChatError(null);
+    setMyPeerId("");
     myPeerIdRef.current = "";
     isMutedRef.current = false;
     isCameraOffRef.current = false;
@@ -119,6 +133,41 @@ export function useWebRTC(
   useEffect(() => {
     onKickedRef.current = onKicked;
   }, [onKicked]);
+
+  useEffect(() => {
+    chatPanelOpenRef.current = chatPanelOpen;
+    if (chatPanelOpen) {
+      setChatUnreadCount(0);
+    }
+  }, [chatPanelOpen]);
+
+  const appendChatMessage = useCallback((message: ChatMessage) => {
+    setChatMessages((prev) => {
+      if (prev.some((m) => m.id === message.id)) return prev;
+      return [...prev, message];
+    });
+  }, []);
+
+  const joinMeetingChat = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "join-meeting-chat" }));
+    }
+  }, []);
+
+  const leaveMeetingChat = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "leave-meeting-chat" }));
+    }
+  }, []);
+
+  const sendChatMessage = useCallback((text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || wsRef.current?.readyState !== WebSocket.OPEN) return;
+    setChatError(null);
+    wsRef.current.send(
+      JSON.stringify({ type: "send-message", text: trimmed })
+    );
+  }, []);
 
   useEffect(() => {
     const list: MeetingParticipant[] = [];
@@ -259,7 +308,35 @@ export function useWebRTC(
           switch (data.type) {
             case "self":
               myPeerIdRef.current = data.peerId;
+              setMyPeerId(data.peerId);
               setIsHost(Boolean(data.isHost));
+              joinMeetingChat();
+              break;
+
+            case "chat-history":
+              setChatMessages(parseChatMessages(data.messages));
+              break;
+
+            case "receive-message": {
+              const message = parseChatMessage(data.message);
+              if (message) {
+                appendChatMessage(message);
+                if (
+                  !chatPanelOpenRef.current &&
+                  message.senderPeerId !== myPeerIdRef.current
+                ) {
+                  setChatUnreadCount((n) => n + 1);
+                }
+              }
+              break;
+            }
+
+            case "chat-error":
+              setChatError(
+                typeof data.error === "string"
+                  ? data.error
+                  : "Could not send message"
+              );
               break;
 
             case "existing-peers":
@@ -403,6 +480,8 @@ export function useWebRTC(
     connectAttempt,
     cleanup,
     applyForceMute,
+    joinMeetingChat,
+    appendChatMessage,
   ]);
 
   const muteAllParticipants = useCallback(() => {
@@ -564,5 +643,11 @@ export function useWebRTC(
     error,
     retry,
     canRetry,
+    myPeerId,
+    chatMessages,
+    chatUnreadCount,
+    chatError,
+    sendChatMessage,
+    clearChatUnread: () => setChatUnreadCount(0),
   };
 }

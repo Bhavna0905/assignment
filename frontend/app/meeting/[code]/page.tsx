@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import MeetingChatPanel from "@/components/MeetingChatPanel";
 import MeetingControls from "@/components/MeetingControls";
 import PreJoin from "@/components/PreJoin";
 import VideoGrid from "@/components/VideoGrid";
@@ -32,6 +33,8 @@ export default function MeetingPage() {
   const [meetingValid, setMeetingValid] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatDraft, setChatDraft] = useState("");
 
   const displayName = joinSession?.displayName ?? "";
   const isMeetingHost = joinSession?.isHost ?? false;
@@ -68,7 +71,27 @@ export default function MeetingPage() {
     error: rtcError,
     retry,
     canRetry,
-  } = useWebRTC(code, displayName, joined, isMeetingHost, handleKicked);
+    myPeerId,
+    chatMessages,
+    chatUnreadCount,
+    chatError,
+    sendChatMessage,
+    clearChatUnread,
+  } = useWebRTC(code, displayName, joined, isMeetingHost, handleKicked, chatOpen);
+
+  const handleToggleChat = useCallback(() => {
+    setChatOpen((open) => {
+      if (!open) clearChatUnread();
+      return !open;
+    });
+  }, [clearChatUnread]);
+
+  const handleSendChat = useCallback(() => {
+    const text = chatDraft.trim();
+    if (!text) return;
+    sendChatMessage(text);
+    setChatDraft("");
+  }, [chatDraft, sendChatMessage]);
 
   useEffect(() => {
     if (!code) {
@@ -184,14 +207,28 @@ export default function MeetingPage() {
           {rtcError}
         </div>
       )}
-      <VideoGrid
-        localStream={localStream}
-        localName={displayName}
-        isMuted={isMuted}
-        isCameraOff={isCameraOff}
-        isSharingScreen={isSharingScreen}
-        peers={peers}
-      />
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <div className="min-h-0 min-w-0 flex-1">
+        <VideoGrid
+          localStream={localStream}
+          localName={displayName}
+          isMuted={isMuted}
+          isCameraOff={isCameraOff}
+          isSharingScreen={isSharingScreen}
+          peers={peers}
+        />
+        </div>
+        <MeetingChatPanel
+          open={chatOpen}
+          onClose={() => setChatOpen(false)}
+          messages={chatMessages}
+          myPeerId={myPeerId}
+          draft={chatDraft}
+          onDraftChange={setChatDraft}
+          onSend={handleSendChat}
+          sendError={chatError}
+        />
+      </div>
       <MeetingControls
         meetingCode={code}
         isMuted={isMuted}
@@ -206,6 +243,9 @@ export default function MeetingPage() {
         onMuteAll={muteAllParticipants}
         onRemoveParticipant={removeParticipant}
         onLeave={leave}
+        chatOpen={chatOpen}
+        chatUnreadCount={chatUnreadCount}
+        onToggleChat={handleToggleChat}
       />
     </div>
   );
