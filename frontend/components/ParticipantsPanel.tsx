@@ -34,7 +34,7 @@ export default function ParticipantsPanel({
       />
 
       <div
-        className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-50 flex max-h-[min(55dvh,380px)] flex-col rounded-t-2xl border border-[#3D3D3D] bg-[#1A1A1A] shadow-xl sm:absolute sm:inset-x-auto sm:bottom-full sm:right-0 sm:mb-2 sm:max-h-80 sm:w-72 sm:rounded-lg"
+        className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-50 flex max-h-[min(55dvh,380px)] flex-col rounded-t-2xl border border-gray-700 bg-zoom-navy shadow-xl sm:absolute sm:inset-x-auto sm:bottom-full sm:right-0 sm:mb-2 sm:max-h-80 sm:w-72 sm:rounded-xl"
         role="dialog"
         aria-label="Participants"
       >
@@ -57,7 +57,7 @@ export default function ParticipantsPanel({
             <button
               type="button"
               onClick={onMuteAll}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-[#2D8CFF] px-3 py-2.5 text-sm font-medium text-white transition hover:bg-[#0E71EB]"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-zoom-primary px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-zoom-primary-hover"
             >
               <MicOff className="h-4 w-4" />
               Mute all

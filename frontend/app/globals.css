@@ -3,26 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --zoom-primary: #2d8cff;
-  --zoom-dark-blue: #0e71eb;
-  --zoom-orange: #f5a623;
-  --zoom-bg-light: #f7f7f7;
+  --zoom-primary: #0b5cff;
+  --zoom-primary-hover: #0952d9;
+  --zoom-navy: #0e1222;
+  --zoom-bg: #f7f9fc;
   --zoom-card: #ffffff;
-  --zoom-room-dark: #1a1a1a;
-  --zoom-control-bar: #2d2d2d;
-  --zoom-text-primary: #1a1a1a;
-  --zoom-text-secondary: #747487;
-  --zoom-border: #e0e0e0;
-  --zoom-surface-muted: #e8e8ed;
+  --zoom-border: #e5e7eb;
+  --zoom-text: #111827;
+  --zoom-muted: #6b7280;
+  --zoom-orange: #f26d21;
+  --zoom-room-dark: #0e1222;
+  --zoom-control-bar: #1f2937;
 }
 
 .dark {
-  --zoom-bg-light: #1a1a1a;
-  --zoom-card: #2c2c2c;
-  --zoom-text-primary: #f7f7f7;
-  --zoom-text-secondary: #a0a0b0;
+  --zoom-bg: #121212;
+  --zoom-card: #1c1c1c;
   --zoom-border: #3d3d3d;
-  --zoom-surface-muted: #3d3d3d;
+  --zoom-text: #ffffff;
+  --zoom-muted: #8c8c8c;
 }
 
 html {
@@ -30,9 +29,47 @@ html {
 }
 
 body {
-  color: var(--zoom-text-primary);
-  background-color: var(--zoom-bg-light);
+  color: var(--zoom-text);
+  background-color: var(--zoom-bg);
   overflow-x: hidden;
+}
+
+@layer components {
+  .zoom-card {
+    @apply rounded-xl border border-zoom-border bg-zoom-card text-zoom-text shadow-zoom transition-shadow duration-200 hover:shadow-zoom-md;
+  }
+
+  .dark .zoom-card {
+    @apply shadow-zoom-dark;
+  }
+
+  .zoom-btn-primary {
+    @apply rounded-lg bg-zoom-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-zoom-primary-hover focus:outline-none focus:ring-2 focus:ring-zoom-primary focus:ring-offset-2 focus:ring-offset-zoom-bg disabled:opacity-60;
+  }
+
+  .zoom-btn-outline {
+    @apply rounded-lg border border-zoom-border bg-zoom-card px-4 py-2.5 text-sm font-semibold text-zoom-text transition-colors duration-200 hover:border-zoom-primary hover:text-zoom-primary;
+  }
+
+  .zoom-input {
+    @apply w-full rounded-lg border border-zoom-border bg-zoom-card px-3 py-2.5 text-zoom-text transition-colors placeholder:text-zoom-muted focus:border-zoom-primary focus:outline-none focus:ring-2 focus:ring-zoom-primary/20;
+  }
+
+  .zoom-nav-item {
+    @apply flex w-full items-center gap-3 rounded-md px-4 py-2 text-sm transition-colors;
+  }
+
+  .zoom-nav-item-active {
+    @apply border-l-[3px] border-zoom-primary bg-zoom-primary/10 font-medium text-zoom-primary;
+  }
+
+  .zoom-nav-item-inactive {
+    @apply border-l-[3px] border-transparent text-zoom-muted hover:text-zoom-text;
+  }
+
+  .zoom-nav-item-inactive:hover {
+    background-color: color-mix(in srgb, var(--zoom-border) 40%, transparent);
+  }
 }
 
 @layer utilities {

@@ -49,7 +49,7 @@ function ControlButton({
 }) {
   const activeClass =
     activeStyle === "primary"
-      ? "bg-[#0E71EB] text-white hover:bg-[#2D8CFF]"
+      ? "bg-zoom-primary text-white hover:bg-zoom-primary-hover"
       : "bg-red-600 text-white hover:bg-red-700";
 
   return (
@@ -94,7 +94,7 @@ export default function MeetingControls({
   });
 
   return (
-    <footer className="shrink-0 bg-[#2D2D2D] pb-safe">
+    <footer className="shrink-0 border-t border-gray-700/50 bg-zoom-navy pb-safe">
       <div className="touch-pan-x scrollbar-thin flex items-center justify-center gap-1 overflow-x-auto px-2 py-2 sm:hidden">
         <ControlButton
           onClick={onToggleMic}
@@ -165,7 +165,7 @@ export default function MeetingControls({
             }`}
           >
             <Users className="h-5 w-5" />
-            <span className="absolute -bottom-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#2D8CFF] px-1 text-[10px] font-semibold">
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-zoom-primary px-1 text-[10px] font-semibold text-white">
               {participantCount}
             </span>
           </button>

@@ -67,13 +67,13 @@ export default function MeetingChatPanel({
       />
 
       <aside
-        className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] top-auto z-50 flex max-h-[min(65dvh,520px)] w-full flex-col rounded-t-2xl border border-[#3D3D3D] bg-[#1A1A1A] shadow-2xl sm:max-h-[70dvh] md:relative md:inset-auto md:bottom-auto md:top-auto md:z-30 md:max-h-full md:w-80 md:shrink-0 md:rounded-none md:border-l md:border-t-0"
+        className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] top-auto z-50 flex max-h-[min(65dvh,520px)] w-full flex-col rounded-t-2xl border border-gray-700 bg-zoom-navy shadow-2xl sm:max-h-[70dvh] md:relative md:inset-auto md:bottom-auto md:top-auto md:z-30 md:max-h-full md:w-80 md:shrink-0 md:rounded-none md:border-l md:border-t-0"
         role="dialog"
         aria-label="Meeting chat"
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[#3D3D3D] px-4 py-3">
           <div className="flex items-center gap-2 text-white">
-            <MessageSquare className="h-4 w-4 text-[#2D8CFF]" />
+            <MessageSquare className="h-4 w-4 text-zoom-primary" />
             <h3 className="text-sm font-semibold">In-meeting chat</h3>
           </div>
           <button
@@ -106,8 +106,8 @@ export default function MeetingChatPanel({
                     <div
                       className={`max-w-[90%] rounded-lg px-3 py-2 text-sm ${
                         isOwn
-                          ? "bg-[#0E71EB] text-white"
-                          : "bg-[#2C2C2C] text-white"
+                          ? "bg-zoom-primary text-white"
+                          : "bg-gray-800 text-white"
                       }`}
                     >
                       <div
@@ -149,14 +149,14 @@ export default function MeetingChatPanel({
               onKeyDown={handleKeyDown}
               placeholder="Type a message…"
               maxLength={2000}
-              className="min-w-0 flex-1 rounded-lg border border-[#3D3D3D] bg-[#2C2C2C] px-3 py-2.5 text-sm text-white placeholder:text-[#747487] focus:border-[#2D8CFF] focus:outline-none focus:ring-1 focus:ring-[#2D8CFF]"
+              className="min-w-0 flex-1 rounded-lg border border-gray-600 bg-gray-800 px-3 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-zoom-primary focus:outline-none focus:ring-1 focus:ring-zoom-primary"
               aria-label="Chat message"
             />
             <button
               type="submit"
               disabled={!draft.trim()}
               aria-label="Send message"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#2D8CFF] text-white transition hover:bg-[#0E71EB] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zoom-primary text-white transition hover:bg-zoom-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
             </button>

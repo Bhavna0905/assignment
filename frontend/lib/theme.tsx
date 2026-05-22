@@ -18,10 +18,12 @@ const ThemeContext = createContext<{
 } | null>(null);
 
 function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle("dark", theme === "dark");
+  const root = document.documentElement;
+  root.classList.toggle("dark", theme === "dark");
+  root.style.colorScheme = theme;
 }
 
-function getInitialTheme(): Theme {
+function readStoredTheme(): Theme {
   if (typeof window === "undefined") return "light";
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored === "dark" || stored === "light") return stored;
@@ -31,12 +33,23 @@ function getInitialTheme(): Theme {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>(() => readStoredTheme());
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const initial = getInitialTheme();
+    const initial = readStoredTheme();
     setTheme(initial);
     applyTheme(initial);
+    setMounted(true);
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && (e.newValue === "dark" || e.newValue === "light")) {
+        setTheme(e.newValue);
+        applyTheme(e.newValue);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const toggleTheme = useCallback(() => {
@@ -47,6 +60,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
   }, []);
+
+  if (!mounted) {
+    return (
+      <ThemeContext.Provider value={{ theme: "light", toggleTheme }}>
+        {children}
+      </ThemeContext.Provider>
+    );
+  }
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

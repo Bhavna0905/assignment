@@ -8,9 +8,14 @@ import { formatMeetingDateTime, getMeetingInviteUrl } from "@/lib/utils";
 interface MeetingListProps {
   upcoming: Meeting[];
   recent: Meeting[];
+  hideUpcoming?: boolean;
 }
 
-export default function MeetingList({ upcoming, recent }: MeetingListProps) {
+export default function MeetingList({
+  upcoming,
+  recent,
+  hideUpcoming = false,
+}: MeetingListProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const handleCopyInvite = async (code: string) => {
@@ -21,15 +26,15 @@ export default function MeetingList({ upcoming, recent }: MeetingListProps) {
   };
 
   return (
-    <div className="mt-8 grid gap-6 sm:mt-12 lg:grid-cols-2 lg:gap-8">
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-[#1A1A1A] dark:text-[#F7F7F7]">
+    <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+      <section className={hideUpcoming ? "hidden" : undefined}>
+        <h2 className="mb-4 text-lg font-bold text-zoom-text">
           Upcoming
         </h2>
         {upcoming.length === 0 ? (
-          <div className="flex flex-col items-center rounded-lg border border-dashed border-[#E8E8ED] bg-white px-6 py-10 text-center dark:border-[#3D3D3D] dark:bg-[#2C2C2C]">
-            <CalendarX className="h-10 w-10 text-[#747487]" strokeWidth={1.5} />
-            <p className="mt-3 text-sm text-[#747487]">
+          <div className="zoom-card flex flex-col items-center border-dashed px-6 py-10 text-center">
+            <CalendarX className="h-10 w-10 text-zoom-muted" strokeWidth={1.5} />
+            <p className="mt-3 text-sm text-zoom-muted">
               No upcoming meetings scheduled
             </p>
           </div>
@@ -38,32 +43,32 @@ export default function MeetingList({ upcoming, recent }: MeetingListProps) {
             {upcoming.map((meeting) => (
               <li
                 key={meeting.id}
-                className="rounded-lg border border-[#E8E8ED] bg-white p-4 shadow-sm dark:border-[#3D3D3D] dark:bg-[#2C2C2C]"
+                className="zoom-card p-4 transition-shadow hover:shadow-zoom-md"
               >
-                <h3 className="truncate font-semibold text-[#1A1A1A] dark:text-[#F7F7F7]">
+                <h3 className="truncate font-semibold text-zoom-text">
                   {meeting.title}
                 </h3>
                 {meeting.scheduled_start && (
-                  <p className="mt-1 text-sm text-[#747487]">
+                  <p className="mt-1 text-sm text-zoom-muted">
                     {formatMeetingDateTime(meeting.scheduled_start)}
                     {meeting.duration_minutes
                       ? ` · ${meeting.duration_minutes} min`
                       : ""}
                   </p>
                 )}
-                <p className="mt-1 font-mono text-sm text-[#747487]">
+                <p className="mt-1 font-mono text-sm text-zoom-muted">
                   {meeting.meeting_code}
                 </p>
                 <div className="relative mt-3 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => handleCopyInvite(meeting.meeting_code)}
-                    className="w-full rounded-md bg-[#2D8CFF] px-3 py-2.5 text-sm font-medium text-white transition hover:bg-[#0E71EB] sm:w-auto sm:py-1.5"
+                    className="zoom-btn-primary w-full sm:w-auto"
                   >
                     Copy invite
                   </button>
                   {copiedCode === meeting.meeting_code && (
-                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-[#1A1A1A] px-2 py-1 text-xs text-white shadow">
+                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-zoom-navy px-2 py-1 text-xs text-white shadow">
                       Copied!
                     </span>
                   )}
@@ -74,33 +79,35 @@ export default function MeetingList({ upcoming, recent }: MeetingListProps) {
         )}
       </section>
 
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-[#1A1A1A] dark:text-[#F7F7F7]">
-          Recent
-        </h2>
+      <section className={hideUpcoming ? "lg:col-span-2" : ""}>
+        {!hideUpcoming && (
+          <h2 className="mb-4 text-lg font-bold text-zoom-text">
+            Recent
+          </h2>
+        )}
         {recent.length === 0 ? (
-          <div className="flex flex-col items-center rounded-lg border border-dashed border-[#E8E8ED] bg-white px-6 py-10 text-center dark:border-[#3D3D3D] dark:bg-[#2C2C2C]">
-            <History className="h-10 w-10 text-[#747487]" strokeWidth={1.5} />
-            <p className="mt-3 text-sm text-[#747487]">No recent meetings</p>
+          <div className="zoom-card flex flex-col items-center border-dashed px-6 py-10 text-center">
+            <History className="h-10 w-10 text-zoom-muted" strokeWidth={1.5} />
+            <p className="mt-3 text-sm text-zoom-muted">No recent meetings</p>
           </div>
         ) : (
-          <ul className="divide-y divide-[#E8E8ED] rounded-lg border border-[#E8E8ED] bg-white dark:divide-[#3D3D3D] dark:border-[#3D3D3D] dark:bg-[#2C2C2C]">
+          <ul className="zoom-card divide-y divide-zoom-border overflow-hidden">
             {recent.map((meeting) => (
               <li
                 key={meeting.id}
-                className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-zoom-border/30 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-[#1A1A1A] dark:text-[#F7F7F7]">
+                  <p className="truncate font-medium text-zoom-text">
                     {meeting.title}
                   </p>
-                  <p className="text-xs text-[#747487]">
+                  <p className="text-xs text-zoom-muted">
                     {formatMeetingDateTime(
                       meeting.scheduled_start ?? meeting.created_at
                     )}
                   </p>
                 </div>
-                <span className="shrink-0 text-sm font-medium text-[#747487]">
+                <span className="shrink-0 text-sm font-medium text-zoom-muted">
                   Ended
                 </span>
               </li>

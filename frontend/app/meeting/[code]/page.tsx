@@ -140,7 +140,7 @@ export default function MeetingPage() {
 
   if (validating) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#1A1A1A] px-4 text-[#747487]">
+      <div className="flex min-h-dvh items-center justify-center bg-zoom-navy px-4 text-gray-400">
         Loading meeting…
       </div>
     );
@@ -148,12 +148,12 @@ export default function MeetingPage() {
 
   if (pageError && !joined) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-[#1A1A1A] px-4 pb-safe text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-zoom-navy px-4 pb-safe text-center">
         <p className="text-red-400">{pageError}</p>
         <button
           type="button"
           onClick={() => router.push("/")}
-          className="rounded-md bg-[#2D8CFF] px-4 py-2 text-white hover:bg-[#0E71EB]"
+          className="zoom-btn-primary"
         >
           Back to Home
         </button>
@@ -187,7 +187,7 @@ export default function MeetingPage() {
   const showServerError = rtcError && canRetry;
 
   return (
-    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-[#1A1A1A]">
+    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-zoom-navy">
       {showServerError && (
         <div className="flex flex-col gap-2 bg-red-600 px-3 py-2 text-sm text-white sm:flex-row sm:items-center sm:justify-between sm:px-4">
           <span className="text-center sm:text-left">

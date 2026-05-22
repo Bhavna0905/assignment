@@ -131,39 +131,39 @@ export default function ScheduleModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
-      <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-2xl bg-white px-4 py-5 shadow-xl sm:rounded-lg sm:px-6 sm:py-6 dark:bg-[#2C2C2C]">
-        <h2 className="text-lg font-semibold text-[#1A1A1A] sm:text-xl dark:text-[#F7F7F7]">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-2xl bg-zoom-card px-4 py-5 text-zoom-text shadow-zoom-md sm:rounded-xl sm:px-6 sm:py-6">
+        <h2 className="text-lg font-bold text-zoom-text sm:text-xl">
           Schedule a meeting
         </h2>
 
         {scheduledMeeting ? (
           <div className="mt-4">
-            <p className="text-sm text-[#747487]">
+            <p className="text-sm text-zoom-muted">
               Meeting scheduled. Share this invite link:
             </p>
             <div className="mt-2 flex flex-col gap-2 sm:flex-row">
               <input
                 readOnly
                 value={inviteUrl}
-                className="min-w-0 flex-1 rounded-md border border-[#E0E0E0] bg-[#F7F7F7] px-3 py-2 text-sm text-[#1A1A1A] dark:border-[#3D3D3D] dark:bg-[#1A1A1A] dark:text-[#F7F7F7]"
+                className="zoom-input text-sm"
               />
               <button
                 type="button"
                 onClick={handleCopy}
-                className="shrink-0 rounded-md bg-[#2D8CFF] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0E71EB] sm:py-2"
+                className="zoom-btn-primary shrink-0 sm:py-2"
               >
                 {copied ? "Copied!" : "Copy"}
               </button>
             </div>
-            <p className="mt-2 font-mono text-sm text-[#747487]">
+            <p className="mt-2 font-mono text-sm text-zoom-muted">
               ID: {scheduledMeeting.meeting_code}
             </p>
             <div className="mt-6 flex justify-end">
               <button
                 type="button"
                 onClick={handleClose}
-                className="rounded-md bg-[#2D8CFF] px-4 py-2 text-sm font-medium text-white hover:bg-[#0E71EB]"
+                className="zoom-btn-primary"
               >
                 Done
               </button>
@@ -172,43 +172,43 @@ export default function ScheduleModal({
         ) : (
           <>
             <div className="mt-4 space-y-4">
-              <label className="block text-sm text-[#747487]">
+              <label className="block text-sm font-medium text-zoom-muted">
                 Title *
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1 w-full rounded-md border border-[#E0E0E0] bg-white px-3 py-2.5 text-base text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#2D8CFF] sm:py-2 sm:text-sm dark:border-[#3D3D3D] dark:bg-[#1A1A1A] dark:text-[#F7F7F7]"
+                  className="zoom-input mt-1 text-base sm:text-sm"
                 />
               </label>
-              <label className="block text-sm text-[#747487]">
+              <label className="block text-sm font-medium text-zoom-muted">
                 Description
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="mt-1 w-full resize-y rounded-md border border-[#E0E0E0] bg-white px-3 py-2.5 text-base text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#2D8CFF] sm:py-2 sm:text-sm dark:border-[#3D3D3D] dark:bg-[#1A1A1A] dark:text-[#F7F7F7]"
+                  className="zoom-input mt-1 resize-y text-base sm:text-sm"
                 />
               </label>
               <div className="grid grid-cols-1 gap-4">
-                <label className="block text-sm text-[#747487]">
+                <label className="block text-sm font-medium text-zoom-muted">
                   Date *
                   <input
                     type="date"
                     value={date}
                     min={todayDateString()}
                     onChange={(e) => setDate(e.target.value)}
-                    className="mt-1 w-full rounded-md border border-[#E0E0E0] bg-white px-3 py-2.5 text-base text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#2D8CFF] sm:py-2 sm:text-sm dark:border-[#3D3D3D] dark:bg-[#1A1A1A] dark:text-[#F7F7F7]"
+                    className="zoom-input mt-1 text-base sm:text-sm"
                   />
                 </label>
-                <div className="block text-sm text-[#747487]">
+                <div className="block text-sm font-medium text-zoom-muted">
                   <span>Start time *</span>
                   <div className="mt-1 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:grid-cols-[1fr_auto_1fr_auto]">
                     <select
                       value={hour}
                       onChange={(e) => setHour(e.target.value)}
                       aria-label="Hour"
-                      className="min-w-0 w-full rounded-md border border-[#E0E0E0] bg-white px-2 py-2.5 text-base text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#2D8CFF] sm:py-2 sm:text-sm dark:border-[#3D3D3D] dark:bg-[#1A1A1A] dark:text-[#F7F7F7]"
+                      className="zoom-input mt-1 text-base sm:text-sm"
                     >
                       <option value="">Hour</option>
                       {HOURS_12.map((h) => (
@@ -217,12 +217,12 @@ export default function ScheduleModal({
                         </option>
                       ))}
                     </select>
-                    <span className="text-center text-[#747487]">:</span>
+                    <span className="text-center text-zoom-muted">:</span>
                     <select
                       value={minute}
                       onChange={(e) => setMinute(e.target.value)}
                       aria-label="Minute"
-                      className="min-w-0 w-full rounded-md border border-[#E0E0E0] bg-white px-2 py-2.5 text-base text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#2D8CFF] sm:py-2 sm:text-sm dark:border-[#3D3D3D] dark:bg-[#1A1A1A] dark:text-[#F7F7F7]"
+                      className="zoom-input mt-1 text-base sm:text-sm"
                     >
                       <option value="">Min</option>
                       {MINUTES.map((m) => (
@@ -235,7 +235,7 @@ export default function ScheduleModal({
                       value={period}
                       onChange={(e) => setPeriod(e.target.value as TimePeriod)}
                       aria-label="AM or PM"
-                      className="col-span-3 w-full rounded-md border border-[#E0E0E0] bg-white px-2 py-2.5 text-base text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#2D8CFF] sm:col-span-1 sm:w-auto sm:min-w-[5rem] sm:py-2 sm:text-sm dark:border-[#3D3D3D] dark:bg-[#1A1A1A] dark:text-[#F7F7F7]"
+                      className="zoom-input col-span-3 mt-1 w-full text-base sm:col-span-1 sm:mt-0 sm:min-w-[5rem] sm:text-sm"
                     >
                       <option value="AM">AM</option>
                       <option value="PM">PM</option>
@@ -243,12 +243,12 @@ export default function ScheduleModal({
                   </div>
                 </div>
               </div>
-              <label className="block text-sm text-[#747487]">
+              <label className="block text-sm font-medium text-zoom-muted">
                 Duration
                 <select
                   value={duration}
                   onChange={(e) => setDuration(Number(e.target.value))}
-                  className="mt-1 w-full rounded-md border border-[#E0E0E0] bg-white px-3 py-2.5 text-base text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#2D8CFF] sm:py-2 sm:text-sm dark:border-[#3D3D3D] dark:bg-[#1A1A1A] dark:text-[#F7F7F7]"
+                  className="zoom-input mt-1 text-base sm:text-sm"
                 >
                   {DURATIONS.map((m) => (
                     <option key={m} value={m}>
@@ -267,7 +267,7 @@ export default function ScheduleModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-md px-4 py-3 text-sm font-medium text-[#747487] hover:bg-[#F7F7F7] dark:hover:bg-[#3D3D3D] sm:py-2"
+                className="rounded-lg px-4 py-3 text-sm font-semibold text-zoom-muted transition-colors hover:bg-zoom-bg sm:py-2"
               >
                 Cancel
               </button>
@@ -275,7 +275,7 @@ export default function ScheduleModal({
                 type="button"
                 onClick={handleSchedule}
                 disabled={submitting}
-                className="rounded-md bg-[#0E71EB] px-4 py-3 text-sm font-medium text-white hover:bg-[#2D8CFF] disabled:opacity-60 sm:py-2"
+                className="zoom-btn-primary disabled:opacity-60 sm:py-2"
               >
                 {submitting ? "Scheduling…" : "Schedule"}
               </button>

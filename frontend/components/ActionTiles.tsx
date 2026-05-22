@@ -8,36 +8,26 @@ interface ActionTilesProps {
   onScheduleMeeting: () => void;
 }
 
-interface TileProps {
+interface QuickActionProps {
   label: string;
   icon: React.ReactNode;
-  bgClass: string;
-  textClass: string;
+  iconBg: string;
   onClick?: () => void;
-  disabled?: boolean;
 }
 
-function Tile({
-  label,
-  icon,
-  bgClass,
-  textClass,
-  onClick,
-  disabled,
-}: TileProps) {
+function QuickAction({ label, icon, iconBg, onClick }: QuickActionProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
-      className={`flex flex-col items-center gap-3 ${disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
+      className="group flex flex-1 flex-col items-center gap-2 rounded-xl p-3 transition-all duration-200 hover:bg-zoom-border/30"
     >
       <div
-        className={`flex h-16 w-16 items-center justify-center rounded-2xl sm:h-24 sm:w-24 md:h-28 md:w-28 ${bgClass}`}
+        className={`flex h-12 w-12 items-center justify-center rounded-full shadow-zoom transition-transform duration-200 group-hover:scale-105 sm:h-14 sm:w-14 ${iconBg}`}
       >
         {icon}
       </div>
-      <span className={`max-w-[5.5rem] text-center text-[11px] font-medium leading-tight sm:max-w-none sm:text-sm ${textClass}`}>
+      <span className="text-center text-xs font-semibold text-zoom-text sm:text-sm">
         {label}
       </span>
     </button>
@@ -50,40 +40,27 @@ export default function ActionTiles({
   onScheduleMeeting,
 }: ActionTilesProps) {
   return (
-    <div className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8">
-      <Tile
-        label="New Meeting"
-        bgClass="bg-[#F5A623]"
-        textClass="text-[#1A1A1A] dark:text-[#F7F7F7]"
-        icon={
-          <Video
-            className="h-7 w-7 text-white sm:h-10 sm:w-10"
-            strokeWidth={1.5}
-          />
-        }
-        onClick={onNewMeeting}
-      />
-      <Tile
-        label="Join"
-        bgClass="bg-[#2D8CFF]"
-        textClass="text-[#1A1A1A] dark:text-[#F7F7F7]"
-        icon={
-          <Plus className="h-7 w-7 text-white sm:h-10 sm:w-10" strokeWidth={2} />
-        }
-        onClick={onJoinMeeting}
-      />
-      <Tile
-        label="Schedule"
-        bgClass="bg-[#0E71EB]"
-        textClass="text-[#1A1A1A] dark:text-[#F7F7F7]"
-        icon={
-          <Calendar
-            className="h-7 w-7 text-white sm:h-10 sm:w-10"
-            strokeWidth={1.5}
-          />
-        }
-        onClick={onScheduleMeeting}
-      />
+    <div className="zoom-card p-4 sm:p-5">
+      <div className="flex items-stretch justify-between gap-1">
+        <QuickAction
+          label="Schedule"
+          iconBg="bg-zoom-primary"
+          icon={<Calendar className="h-6 w-6 text-white" strokeWidth={1.5} />}
+          onClick={onScheduleMeeting}
+        />
+        <QuickAction
+          label="Join"
+          iconBg="bg-zoom-primary"
+          icon={<Plus className="h-6 w-6 text-white" strokeWidth={2.5} />}
+          onClick={onJoinMeeting}
+        />
+        <QuickAction
+          label="Host"
+          iconBg="bg-zoom-orange"
+          icon={<Video className="h-6 w-6 text-white" strokeWidth={1.5} />}
+          onClick={onNewMeeting}
+        />
+      </div>
     </div>
   );
 }

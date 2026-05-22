@@ -84,7 +84,7 @@ export default function PreJoin({
   };
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-[#1A1A1A] px-4 py-6 text-white sm:py-8">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-zoom-navy px-4 py-6 text-white sm:py-8">
       {onBack && (
         <button
           type="button"
@@ -97,14 +97,14 @@ export default function PreJoin({
       )}
       <div className="w-full max-w-md text-center">
         <p className="text-sm text-[#747487]">You are about to join</p>
-        <p className="mt-1 break-all font-mono text-lg text-[#2D8CFF] sm:text-xl">
+        <p className="mt-1 break-all font-mono text-lg text-zoom-primary sm:text-xl">
           {meetingCode}
         </p>
 
         <div className="relative mt-8 aspect-video overflow-hidden rounded-xl bg-[#2C2C2C]">
           {previewLoading && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="h-10 w-10 animate-spin text-[#2D8CFF]" />
+              <Loader2 className="h-10 w-10 animate-spin text-zoom-primary" />
             </div>
           )}
           <video
@@ -127,7 +127,7 @@ export default function PreJoin({
             }}
             onKeyDown={(e) => e.key === "Enter" && handleJoin()}
             placeholder="Your name"
-            className="mt-2 w-full rounded-md border border-[#3D3D3D] bg-[#2C2C2C] px-3 py-3 text-base text-white placeholder:text-[#747487] focus:outline-none focus:ring-2 focus:ring-[#2D8CFF] sm:py-2 sm:text-sm"
+            className="mt-2 w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-3 text-base text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-zoom-primary sm:py-2 sm:text-sm"
             autoComplete="name"
             autoFocus
           />
@@ -143,7 +143,7 @@ export default function PreJoin({
           type="button"
           onClick={handleJoin}
           disabled={joining}
-          className="mt-6 w-full rounded-md bg-[#2D8CFF] py-3.5 text-base font-semibold text-white transition hover:bg-[#0E71EB] disabled:opacity-60 sm:py-3 sm:text-sm"
+          className="zoom-btn-primary mt-6 w-full py-3.5 text-base sm:py-3 sm:text-sm"
         >
           {joining ? "Joining…" : "Join Meeting"}
         </button>

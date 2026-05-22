@@ -20,11 +20,21 @@ function authHeaders(extra?: HeadersInit): HeadersInit {
   return headers;
 }
 
+function networkErrorMessage(): string {
+  const base = getApiBase();
+  return `Cannot reach the server at ${base}. Start the backend (uvicorn on port 8000) and refresh.`;
+}
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...init,
-    headers: authHeaders(init?.headers),
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...init,
+      headers: authHeaders(init?.headers),
+    });
+  } catch {
+    throw new Error(networkErrorMessage());
+  }
   if (!res.ok) {
     let detail = res.statusText;
     try {
@@ -39,6 +49,16 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  health: async (): Promise<{ status: string }> => {
+    try {
+      const res = await fetch(`${getApiBase()}/api/health`);
+      if (!res.ok) throw new Error("unhealthy");
+      return res.json() as Promise<{ status: string }>;
+    } catch {
+      throw new Error(networkErrorMessage());
+    }
+  },
+
   syncUser: (profile: {
     google_id: string;
     name: string;

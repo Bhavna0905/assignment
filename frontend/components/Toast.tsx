@@ -14,7 +14,7 @@ export default function Toast({
   const styles = {
     error: "bg-red-600 text-white",
     success: "bg-green-600 text-white",
-    info: "bg-[#2D8CFF] text-white",
+    info: "bg-zoom-primary text-white",
   };
 
   return (
