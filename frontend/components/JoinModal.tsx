@@ -35,7 +35,7 @@ export default function JoinModal({ open, onClose, onJoin }: JoinModalProps) {
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
       <div
-        className="max-h-[90dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl sm:max-w-md sm:rounded-lg sm:p-6 dark:bg-[#2C2C2C]"
+        className="max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl bg-white px-4 py-5 shadow-xl sm:max-w-md sm:rounded-lg sm:px-6 sm:py-6 dark:bg-[#2C2C2C]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="join-modal-title"

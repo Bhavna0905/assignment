@@ -27,9 +27,9 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-14 border-b border-[#E0E0E0] bg-white dark:border-[#3D3D3D] dark:bg-[#1A1A1A]">
-      <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 sm:px-6">
-        <span className="text-xl font-bold text-[#2D8CFF] sm:text-2xl">zoom</span>
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#E0E0E0] bg-white dark:border-[#3D3D3D] dark:bg-[#1A1A1A]">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-3 pt-safe sm:px-6">
+        <span className="truncate text-lg font-bold text-[#2D8CFF] sm:text-2xl">zoom</span>
 
         <div className="flex items-center gap-3 sm:gap-4">
           <input

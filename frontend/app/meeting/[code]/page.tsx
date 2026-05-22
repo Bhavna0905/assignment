@@ -207,16 +207,16 @@ export default function MeetingPage() {
           {rtcError}
         </div>
       )}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         <div className="min-h-0 min-w-0 flex-1">
-        <VideoGrid
+          <VideoGrid
           localStream={localStream}
           localName={displayName}
           isMuted={isMuted}
           isCameraOff={isCameraOff}
           isSharingScreen={isSharingScreen}
-          peers={peers}
-        />
+            peers={peers}
+          />
         </div>
         <MeetingChatPanel
           open={chatOpen}

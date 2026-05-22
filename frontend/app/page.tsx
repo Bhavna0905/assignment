@@ -109,9 +109,9 @@ export default function HomePage() {
           />
         )}
         <main className="min-h-dvh bg-[#F7F7F7] pt-14 dark:bg-[#1A1A1A]">
-          <div className="mx-auto max-w-5xl px-4 py-6 pb-safe sm:px-6 sm:py-10">
+          <div className="mx-auto w-full max-w-5xl px-3 py-5 pb-safe sm:px-6 sm:py-10 lg:max-w-6xl">
             <div className="mb-6 h-8 w-48 max-w-full animate-pulse rounded bg-[#E8E8ED] dark:bg-[#3D3D3D] sm:mb-8 sm:h-9 sm:w-64" />
-            <div className="grid grid-cols-2 gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-3 gap-3 sm:gap-6">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex flex-col items-center gap-3">
                   <div className="h-24 w-24 animate-pulse rounded-2xl bg-[#E8E8ED] dark:bg-[#3D3D3D] sm:h-28 sm:w-28" />
@@ -137,8 +137,8 @@ export default function HomePage() {
         />
       )}
       <main className="min-h-dvh bg-[#F7F7F7] pt-14 dark:bg-[#1A1A1A]">
-        <div className="mx-auto max-w-5xl px-4 py-6 pb-safe sm:px-6 sm:py-10">
-          <h1 className="mb-6 line-clamp-2 text-xl font-semibold text-[#1A1A1A] dark:text-[#F7F7F7] sm:mb-8 sm:text-2xl md:text-3xl">
+        <div className="mx-auto w-full max-w-5xl px-3 py-5 pb-safe sm:px-6 sm:py-10 lg:max-w-6xl">
+          <h1 className="mb-5 break-words text-lg font-semibold leading-snug text-[#1A1A1A] dark:text-[#F7F7F7] sm:mb-8 sm:text-2xl md:text-3xl">
             {greeting}
           </h1>
 

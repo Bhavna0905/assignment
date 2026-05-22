@@ -27,8 +27,13 @@ export default function VideoTile({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.srcObject = showVideo ? stream : null;
-  }, [stream, showVideo]);
+    if (showVideo && stream) {
+      video.srcObject = stream;
+      void video.play().catch(() => {});
+    } else {
+      video.srcObject = null;
+    }
+  }, [stream, showVideo, isSharingScreen]);
 
   return (
     <div className="relative flex aspect-video min-h-0 w-full max-w-full items-center justify-center overflow-hidden rounded-lg bg-[#2C2C2C]">

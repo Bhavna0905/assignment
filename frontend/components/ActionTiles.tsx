@@ -33,11 +33,11 @@ function Tile({
       className={`flex flex-col items-center gap-3 ${disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
     >
       <div
-        className={`flex h-20 w-20 items-center justify-center rounded-2xl sm:h-24 sm:w-24 md:h-28 md:w-28 ${bgClass}`}
+        className={`flex h-16 w-16 items-center justify-center rounded-2xl sm:h-24 sm:w-24 md:h-28 md:w-28 ${bgClass}`}
       >
         {icon}
       </div>
-      <span className={`text-center text-xs font-medium sm:text-sm ${textClass}`}>
+      <span className={`max-w-[5.5rem] text-center text-[11px] font-medium leading-tight sm:max-w-none sm:text-sm ${textClass}`}>
         {label}
       </span>
     </button>
@@ -50,14 +50,14 @@ export default function ActionTiles({
   onScheduleMeeting,
 }: ActionTilesProps) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 md:gap-8">
+    <div className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8">
       <Tile
         label="New Meeting"
         bgClass="bg-[#F5A623]"
         textClass="text-[#1A1A1A] dark:text-[#F7F7F7]"
         icon={
           <Video
-            className="h-8 w-8 text-white sm:h-10 sm:w-10"
+            className="h-7 w-7 text-white sm:h-10 sm:w-10"
             strokeWidth={1.5}
           />
         }
@@ -68,7 +68,7 @@ export default function ActionTiles({
         bgClass="bg-[#2D8CFF]"
         textClass="text-[#1A1A1A] dark:text-[#F7F7F7]"
         icon={
-          <Plus className="h-8 w-8 text-white sm:h-10 sm:w-10" strokeWidth={2} />
+          <Plus className="h-7 w-7 text-white sm:h-10 sm:w-10" strokeWidth={2} />
         }
         onClick={onJoinMeeting}
       />
@@ -78,7 +78,7 @@ export default function ActionTiles({
         textClass="text-[#1A1A1A] dark:text-[#F7F7F7]"
         icon={
           <Calendar
-            className="h-8 w-8 text-white sm:h-10 sm:w-10"
+            className="h-7 w-7 text-white sm:h-10 sm:w-10"
             strokeWidth={1.5}
           />
         }

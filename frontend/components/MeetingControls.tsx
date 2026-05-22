@@ -95,7 +95,7 @@ export default function MeetingControls({
 
   return (
     <footer className="shrink-0 bg-[#2D2D2D] pb-safe">
-      <div className="flex items-center justify-center gap-0.5 overflow-x-auto px-2 py-2 sm:hidden">
+      <div className="touch-pan-x scrollbar-thin flex items-center justify-center gap-1 overflow-x-auto px-2 py-2 sm:hidden">
         <ControlButton
           onClick={onToggleMic}
           active={isMuted}
@@ -124,7 +124,11 @@ export default function MeetingControls({
           onClick={onToggleScreenShare}
           active={isSharingScreen}
           activeStyle="primary"
-          label={isSharingScreen ? "Stop sharing" : "Share screen"}
+          label={
+            isSharingScreen
+              ? "Stop sharing"
+              : "Share screen — select a tab, then click Share"
+          }
         >
           {isSharingScreen ? (
             <MonitorOff className="h-5 w-5" />
@@ -176,8 +180,8 @@ export default function MeetingControls({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t border-[#3D3D3D]/60 px-3 py-2 sm:border-t-0 sm:px-4 sm:py-3 md:h-16">
-        <div className="min-w-0 flex-1 text-xs text-[#747487] sm:text-sm md:max-w-[220px]">
+      <div className="flex items-center justify-between gap-2 border-t border-[#3D3D3D]/60 px-2 py-2 sm:border-t-0 sm:px-4 sm:py-3 md:h-16">
+        <div className="min-w-0 flex-1 text-xs text-[#747487] sm:text-sm lg:max-w-[240px]">
           <span className="block truncate font-mono text-white sm:inline">
             {meetingCode}
           </span>
@@ -215,7 +219,11 @@ export default function MeetingControls({
             onClick={onToggleScreenShare}
             active={isSharingScreen}
             activeStyle="primary"
-            label={isSharingScreen ? "Stop sharing" : "Share screen"}
+            label={
+              isSharingScreen
+                ? "Stop sharing"
+                : "Share screen — select a tab, then click Share"
+            }
           >
             {isSharingScreen ? (
               <MonitorOff className="h-5 w-5" />

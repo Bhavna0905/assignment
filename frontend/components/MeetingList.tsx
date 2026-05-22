@@ -21,7 +21,7 @@ export default function MeetingList({ upcoming, recent }: MeetingListProps) {
   };
 
   return (
-    <div className="mt-10 grid gap-8 sm:mt-12 md:grid-cols-2">
+    <div className="mt-8 grid gap-6 sm:mt-12 lg:grid-cols-2 lg:gap-8">
       <section>
         <h2 className="mb-4 text-lg font-semibold text-[#1A1A1A] dark:text-[#F7F7F7]">
           Upcoming
@@ -54,11 +54,11 @@ export default function MeetingList({ upcoming, recent }: MeetingListProps) {
                 <p className="mt-1 font-mono text-sm text-[#747487]">
                   {meeting.meeting_code}
                 </p>
-                <div className="relative mt-3 inline-block">
+                <div className="relative mt-3 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => handleCopyInvite(meeting.meeting_code)}
-                    className="rounded-md bg-[#2D8CFF] px-3 py-1.5 text-sm font-medium text-white transition hover:bg-[#0E71EB]"
+                    className="w-full rounded-md bg-[#2D8CFF] px-3 py-2.5 text-sm font-medium text-white transition hover:bg-[#0E71EB] sm:w-auto sm:py-1.5"
                   >
                     Copy invite
                   </button>

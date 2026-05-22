@@ -19,6 +19,32 @@ function buildIceServers(): RTCIceServer[] {
 
 const ICE_SERVERS = buildIceServers();
 
+/** Chrome/Edge options that improve tab and window picking in the native share dialog. */
+function getDisplayMediaOptions(): DisplayMediaStreamOptions {
+  return {
+    video: {
+      width: { max: 1920 },
+      height: { max: 1080 },
+      frameRate: { max: 30 },
+    },
+    audio: false,
+    preferCurrentTab: false,
+    selfBrowserSurface: "exclude",
+    surfaceSwitching: "include",
+  } as DisplayMediaStreamOptions;
+}
+
+function buildLocalPreviewStream(
+  videoTrack: MediaStreamTrack | null,
+  audioTracks: MediaStreamTrack[]
+): MediaStream | null {
+  const tracks = [
+    ...(videoTrack ? [videoTrack] : []),
+    ...audioTracks.filter((t) => t.readyState === "live"),
+  ];
+  return tracks.length > 0 ? new MediaStream(tracks) : null;
+}
+
 export type PeerState = {
   name: string;
   stream: MediaStream | null;
@@ -58,15 +84,19 @@ export function useWebRTC(
   const isMutedRef = useRef(false);
   const isCameraOffRef = useRef(false);
   const isSharingScreenRef = useRef(false);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
   const cameraTrackRef = useRef<MediaStreamTrack | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
   const screenTrackRef = useRef<MediaStreamTrack | null>(null);
 
   const cleanup = useCallback(() => {
     pcMap.current.forEach((pc) => pc.close());
     pcMap.current.clear();
-    screenTrackRef.current?.stop();
+    screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+    screenStreamRef.current = null;
     screenTrackRef.current = null;
-    localStreamRef.current?.getTracks().forEach((t) => t.stop());
+    cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
+    cameraStreamRef.current = null;
     localStreamRef.current = null;
     cameraTrackRef.current = null;
     setLocalStream(null);
@@ -106,15 +136,37 @@ export function useWebRTC(
     );
   }, []);
 
+  const findVideoSender = (pc: RTCPeerConnection): RTCRtpSender | undefined =>
+    pc.getSenders().find((s) => s.track?.kind === "video") ??
+    pc.getTransceivers().find((t) => t.sender.track?.kind === "video")?.sender;
+
   const replaceVideoTrackOnPeers = useCallback(
     async (track: MediaStreamTrack | null) => {
+      const streamForTrack =
+        localStreamRef.current ??
+        cameraStreamRef.current ??
+        (track ? new MediaStream([track]) : null);
+
       await Promise.all(
         Array.from(pcMap.current.values()).map(async (pc) => {
-          const sender = pc
-            .getSenders()
-            .find((s) => s.track?.kind === "video");
-          if (sender) {
+          const sender = findVideoSender(pc);
+          if (!sender) {
+            if (track && streamForTrack) {
+              pc.addTrack(track, streamForTrack);
+            }
+            return;
+          }
+          try {
             await sender.replaceTrack(track);
+          } catch {
+            if (track && streamForTrack) {
+              try {
+                pc.removeTrack(sender);
+              } catch {
+                /* sender may already be removed */
+              }
+              pc.addTrack(track, streamForTrack);
+            }
           }
         })
       );
@@ -126,6 +178,28 @@ export function useWebRTC(
     const stream = localStreamRef.current;
     if (!stream) return;
     setLocalStream(new MediaStream(stream.getTracks()));
+  }, []);
+
+  const applyScreenSharePreview = useCallback(
+    (screenTrack: MediaStreamTrack) => {
+      const audioTracks = cameraStreamRef.current?.getAudioTracks() ?? [];
+      const preview = buildLocalPreviewStream(screenTrack, audioTracks);
+      if (preview) {
+        localStreamRef.current = preview;
+        setLocalStream(new MediaStream(preview.getTracks()));
+      }
+    },
+    []
+  );
+
+  const restoreCameraPreview = useCallback(() => {
+    const cameraTrack = cameraTrackRef.current;
+    const audioTracks = cameraStreamRef.current?.getAudioTracks() ?? [];
+    const preview = buildLocalPreviewStream(cameraTrack, audioTracks);
+    if (preview) {
+      localStreamRef.current = preview;
+      setLocalStream(new MediaStream(preview.getTracks()));
+    }
   }, []);
 
   const ready = enabled && !!meetingCode && !!displayName;
@@ -224,6 +298,7 @@ export function useWebRTC(
           return;
         }
 
+        cameraStreamRef.current = stream;
         localStreamRef.current = stream;
         cameraTrackRef.current = stream.getVideoTracks()[0] ?? null;
         setLocalStream(stream);
@@ -523,27 +598,28 @@ export function useWebRTC(
     if (!screenTrack) return;
 
     screenTrack.onended = null;
-    screenTrack.stop();
+    screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+    screenStreamRef.current = null;
     screenTrackRef.current = null;
     isSharingScreenRef.current = false;
     setIsSharingScreen(false);
 
-    const stream = localStreamRef.current;
     const cameraTrack = cameraTrackRef.current;
-    if (stream) {
-      stream.removeTrack(screenTrack);
-      if (cameraTrack) {
-        stream.addTrack(cameraTrack);
-        cameraTrack.enabled = !isCameraOffRef.current;
-        await replaceVideoTrackOnPeers(cameraTrack);
-      } else {
-        await replaceVideoTrackOnPeers(null);
-      }
-      refreshLocalStream();
+    if (cameraTrack) {
+      cameraTrack.enabled = !isCameraOffRef.current;
+      restoreCameraPreview();
+      await replaceVideoTrackOnPeers(cameraTrack);
+    } else {
+      restoreCameraPreview();
+      await replaceVideoTrackOnPeers(null);
     }
 
     broadcastState();
-  }, [broadcastState, refreshLocalStream, replaceVideoTrackOnPeers]);
+  }, [
+    broadcastState,
+    replaceVideoTrackOnPeers,
+    restoreCameraPreview,
+  ]);
 
   const toggleCamera = useCallback(() => {
     if (isSharingScreenRef.current) return;
@@ -565,34 +641,36 @@ export function useWebRTC(
     }
 
     try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false,
-      });
+      if (!cameraStreamRef.current) {
+        setError("Camera not ready. Wait a moment and try again.");
+        return;
+      }
+
+      const screenStream =
+        await navigator.mediaDevices.getDisplayMedia(getDisplayMediaOptions());
       const screenTrack = screenStream.getVideoTracks()[0];
       if (!screenTrack) {
         screenStream.getTracks().forEach((t) => t.stop());
+        setError("No video track from shared source. Try another tab or window.");
         return;
       }
 
-      const stream = localStreamRef.current;
-      const cameraTrack = cameraTrackRef.current;
-      if (!stream) {
-        screenTrack.stop();
-        return;
+      if ("contentHint" in screenTrack) {
+        try {
+          screenTrack.contentHint = "detail";
+        } catch {
+          /* unsupported in some browsers */
+        }
       }
 
-      if (cameraTrack && stream.getVideoTracks().includes(cameraTrack)) {
-        stream.removeTrack(cameraTrack);
-      }
-
-      stream.addTrack(screenTrack);
+      screenStreamRef.current = screenStream;
       screenTrackRef.current = screenTrack;
       isSharingScreenRef.current = true;
       setIsSharingScreen(true);
+      setError(null);
 
+      applyScreenSharePreview(screenTrack);
       await replaceVideoTrackOnPeers(screenTrack);
-      refreshLocalStream();
       broadcastState();
 
       screenTrack.onended = () => {
@@ -602,13 +680,18 @@ export function useWebRTC(
       };
     } catch (err) {
       const name = err instanceof Error ? err.name : "";
-      if (name !== "NotAllowedError") {
-        setError("Could not share screen. Please try again.");
+      if (name === "NotAllowedError" || name === "AbortError") {
+        return;
       }
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : "Could not share screen. Pick a tab in the list, then click Share."
+      );
     }
   }, [
+    applyScreenSharePreview,
     broadcastState,
-    refreshLocalStream,
     replaceVideoTrackOnPeers,
     stopScreenShare,
   ]);

@@ -44,11 +44,25 @@ body {
     padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
   }
 
+  .px-safe {
+    padding-left: max(0px, env(safe-area-inset-left, 0px));
+    padding-right: max(0px, env(safe-area-inset-right, 0px));
+  }
+
   .min-h-dvh {
     min-height: 100dvh;
   }
 
   .h-dvh {
     height: 100dvh;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .touch-pan-x {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
   }
 }

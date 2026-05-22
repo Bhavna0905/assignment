@@ -67,7 +67,7 @@ export default function MeetingChatPanel({
       />
 
       <aside
-        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-[#3D3D3D] bg-[#1A1A1A] shadow-2xl md:relative md:inset-auto md:z-30 md:max-h-full md:shrink-0 md:w-80"
+        className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] top-auto z-50 flex max-h-[min(65dvh,520px)] w-full flex-col rounded-t-2xl border border-[#3D3D3D] bg-[#1A1A1A] shadow-2xl sm:max-h-[70dvh] md:relative md:inset-auto md:bottom-auto md:top-auto md:z-30 md:max-h-full md:w-80 md:shrink-0 md:rounded-none md:border-l md:border-t-0"
         role="dialog"
         aria-label="Meeting chat"
       >
