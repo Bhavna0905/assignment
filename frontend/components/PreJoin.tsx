@@ -84,26 +84,22 @@ export default function PreJoin({
   };
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-zoom-navy px-4 py-6 text-white sm:py-8">
+    <div className="flex min-h-dvh items-center justify-center bg-[#1A1A1A] p-4">
       {onBack && (
         <button
           type="button"
           onClick={handleBack}
-          className="fixed left-3 top-[max(0.75rem,env(safe-area-inset-top))] flex items-center gap-2 rounded-md px-3 py-2 text-sm text-[#747487] transition hover:bg-[#2C2C2C] hover:text-white sm:left-4"
+          className="fixed left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-10 flex items-center gap-2 rounded-md px-3 py-2 text-sm text-[#747487] transition hover:bg-[#2C2C2C] hover:text-white sm:left-4"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </button>
       )}
-      <div className="w-full max-w-md text-center">
-        <p className="text-sm text-[#747487]">You are about to join</p>
-        <p className="mt-1 break-all font-mono text-lg text-zoom-primary sm:text-xl">
-          {meetingCode}
-        </p>
 
-        <div className="relative mt-8 aspect-video overflow-hidden rounded-xl bg-[#2C2C2C]">
+      <div className="flex w-full max-w-3xl flex-col gap-6 md:flex-row">
+        <div className="aspect-video w-full overflow-hidden rounded-xl bg-[#2C2C2C] md:w-1/2">
           {previewLoading && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex h-full items-center justify-center">
               <Loader2 className="h-10 w-10 animate-spin text-zoom-primary" />
             </div>
           )}
@@ -116,37 +112,46 @@ export default function PreJoin({
           />
         </div>
 
-        <label className="mt-6 block text-left text-sm text-[#747487]">
-          Display name
-          <input
-            type="text"
-            value={displayName}
-            onChange={(e) => {
-              setDisplayName(e.target.value);
-              setError(null);
-            }}
-            onKeyDown={(e) => e.key === "Enter" && handleJoin()}
-            placeholder="Your name"
-            className="mt-2 w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-3 text-base text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-zoom-primary sm:py-2 sm:text-sm"
-            autoComplete="name"
-            autoFocus
-          />
-        </label>
-
-        {error && (
-          <p className="mt-2 text-sm text-red-400" role="alert">
-            {error}
+        <div className="flex w-full flex-col justify-center gap-4 md:w-1/2">
+          <p className="text-center text-sm text-[#747487]">
+            You are about to join
           </p>
-        )}
+          <p className="break-all text-center font-mono text-xl text-[#2D8CFF]">
+            {meetingCode}
+          </p>
 
-        <button
-          type="button"
-          onClick={handleJoin}
-          disabled={joining}
-          className="zoom-btn-primary mt-6 w-full py-3.5 text-base sm:py-3 sm:text-sm"
-        >
-          {joining ? "Joining…" : "Join Meeting"}
-        </button>
+          <label className="text-sm text-[#747487]">
+            Display name
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => {
+                setDisplayName(e.target.value);
+                setError(null);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleJoin()}
+              placeholder="Your name"
+              className="mt-2 w-full min-h-[48px] rounded-lg border border-gray-600 bg-gray-800 px-3 py-3 text-base text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-zoom-primary"
+              autoComplete="name"
+              autoFocus
+            />
+          </label>
+
+          {error && (
+            <p className="text-sm text-red-400" role="alert">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={handleJoin}
+            disabled={joining}
+            className="w-full min-h-[48px] rounded-lg bg-[#2D8CFF] text-lg font-semibold text-white transition hover:bg-[#0952d9] disabled:opacity-60"
+          >
+            {joining ? "Joining…" : "Join Meeting"}
+          </button>
+        </div>
       </div>
     </div>
   );

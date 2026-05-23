@@ -50,6 +50,7 @@ export type PeerState = {
   stream: MediaStream | null;
   muted: boolean;
   cameraOff: boolean;
+  screenSharing: boolean;
 };
 
 export function useWebRTC(
@@ -66,6 +67,12 @@ export function useWebRTC(
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [isSharingScreen, setIsSharingScreen] = useState(false);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  const [localCameraStream, setLocalCameraStream] = useState<MediaStream | null>(
+    null
+  );
+  const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(isMeetingHost);
   const [participants, setParticipants] = useState<MeetingParticipant[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -122,6 +129,16 @@ export function useWebRTC(
     setIsMuted(false);
     setIsCameraOff(false);
     setIsSharingScreen(false);
+    setScreenStream(null);
+    setLocalCameraStream(null);
+    setActiveSpeaker(null);
+  }, []);
+
+  const syncLocalCameraPreview = useCallback(() => {
+    const cameraTrack = cameraTrackRef.current;
+    const audioTracks = cameraStreamRef.current?.getAudioTracks() ?? [];
+    const preview = buildLocalPreviewStream(cameraTrack, audioTracks);
+    setLocalCameraStream(preview);
   }, []);
 
   const broadcastState = useCallback(() => {
@@ -132,6 +149,7 @@ export function useWebRTC(
         cameraOff: isSharingScreenRef.current
           ? false
           : isCameraOffRef.current,
+        screenSharing: isSharingScreenRef.current,
       })
     );
   }, []);
@@ -264,6 +282,20 @@ export function useWebRTC(
     setParticipants(list);
   }, [peers, displayName, isMuted]);
 
+  useEffect(() => {
+    if (isSharingScreen) {
+      setActiveSpeaker("local");
+      return;
+    }
+    for (const [peerId, peer] of peers) {
+      if (peer.screenSharing) {
+        setActiveSpeaker(peerId);
+        return;
+      }
+    }
+    setActiveSpeaker(null);
+  }, [isSharingScreen, peers]);
+
   const applyForceMute = useCallback(() => {
     const track = localStreamRef.current?.getAudioTracks()[0];
     if (!track || isMutedRef.current) return;
@@ -277,6 +309,7 @@ export function useWebRTC(
         cameraOff: isSharingScreenRef.current
           ? false
           : isCameraOffRef.current,
+        screenSharing: isSharingScreenRef.current,
       })
     );
   }, []);
@@ -302,6 +335,7 @@ export function useWebRTC(
         localStreamRef.current = stream;
         cameraTrackRef.current = stream.getVideoTracks()[0] ?? null;
         setLocalStream(stream);
+        setLocalCameraStream(stream);
         setError(null);
 
         const hostParam = isMeetingHost ? "&is_host=true" : "";
@@ -333,6 +367,7 @@ export function useWebRTC(
                 stream: e.streams[0] ?? null,
                 muted: p?.muted ?? false,
                 cameraOff: p?.cameraOff ?? false,
+                screenSharing: p?.screenSharing ?? false,
               });
               return next;
             });
@@ -425,6 +460,7 @@ export function useWebRTC(
                     stream: null,
                     muted: peer.muted,
                     cameraOff: peer.cameraOff,
+                    screenSharing: Boolean(peer.screenSharing),
                   })
                 );
                 const pc = createPC(peer.peerId);
@@ -448,6 +484,7 @@ export function useWebRTC(
                   stream: null,
                   muted: false,
                   cameraOff: false,
+                  screenSharing: false,
                 })
               );
               break;
@@ -509,6 +546,7 @@ export function useWebRTC(
                     ...p,
                     muted: data.muted,
                     cameraOff: data.cameraOff,
+                    screenSharing: Boolean(data.screenSharing),
                   });
                 }
                 return next;
@@ -603,6 +641,7 @@ export function useWebRTC(
     screenTrackRef.current = null;
     isSharingScreenRef.current = false;
     setIsSharingScreen(false);
+    setScreenStream(null);
 
     const cameraTrack = cameraTrackRef.current;
     if (cameraTrack) {
@@ -614,11 +653,13 @@ export function useWebRTC(
       await replaceVideoTrackOnPeers(null);
     }
 
+    syncLocalCameraPreview();
     broadcastState();
   }, [
     broadcastState,
     replaceVideoTrackOnPeers,
     restoreCameraPreview,
+    syncLocalCameraPreview,
   ]);
 
   const toggleCamera = useCallback(() => {
@@ -637,6 +678,15 @@ export function useWebRTC(
   const toggleScreenShare = useCallback(async () => {
     if (isSharingScreenRef.current) {
       await stopScreenShare();
+      setShareError(null);
+      return;
+    }
+
+    const remoteSharer = Array.from(peers.entries()).find(
+      ([, p]) => p.screenSharing
+    );
+    if (remoteSharer) {
+      setShareError("Someone is already sharing");
       return;
     }
 
@@ -646,11 +696,12 @@ export function useWebRTC(
         return;
       }
 
-      const screenStream =
+      setShareError(null);
+      const displayStream =
         await navigator.mediaDevices.getDisplayMedia(getDisplayMediaOptions());
-      const screenTrack = screenStream.getVideoTracks()[0];
+      const screenTrack = displayStream.getVideoTracks()[0];
       if (!screenTrack) {
-        screenStream.getTracks().forEach((t) => t.stop());
+        displayStream.getTracks().forEach((t) => t.stop());
         setError("No video track from shared source. Try another tab or window.");
         return;
       }
@@ -663,10 +714,12 @@ export function useWebRTC(
         }
       }
 
-      screenStreamRef.current = screenStream;
+      screenStreamRef.current = displayStream;
       screenTrackRef.current = screenTrack;
       isSharingScreenRef.current = true;
       setIsSharingScreen(true);
+      setScreenStream(displayStream);
+      syncLocalCameraPreview();
       setError(null);
 
       applyScreenSharePreview(screenTrack);
@@ -692,8 +745,10 @@ export function useWebRTC(
   }, [
     applyScreenSharePreview,
     broadcastState,
+    peers,
     replaceVideoTrackOnPeers,
     stopScreenShare,
+    syncLocalCameraPreview,
   ]);
 
   const leave = useCallback(async () => {
@@ -711,10 +766,16 @@ export function useWebRTC(
 
   return {
     localStream,
+    localCameraStream,
     peers,
     isMuted,
     isCameraOff,
     isSharingScreen,
+    isScreenSharing: isSharingScreen,
+    screenStream,
+    activeSpeaker,
+    shareError,
+    clearShareError: () => setShareError(null),
     isHost,
     participants,
     muteAllParticipants,

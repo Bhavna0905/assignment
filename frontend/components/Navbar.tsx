@@ -1,9 +1,9 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
-import { ChevronDown, Moon, Search, Sun } from "lucide-react";
+import { ChevronDown, Menu, Search, Settings, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "@/lib/theme";
+import ThemeToggle from "@/components/ThemeToggle";
 import { getInitials } from "@/lib/utils";
 
 interface NavbarProps {
@@ -14,8 +14,8 @@ interface NavbarProps {
 
 export default function Navbar({ onSchedule, onJoin, onHost }: NavbarProps) {
   const { data: session } = useSession();
-  const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [hostOpen, setHostOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -39,7 +39,7 @@ export default function Navbar({ onSchedule, onJoin, onHost }: NavbarProps) {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50">
+    <header className="fixed left-0 right-0 top-0 z-50">
       <div className="hidden border-b border-zoom-navy/20 bg-zoom-navy text-xs text-white lg:block">
         <div className="mx-auto flex max-w-[1600px] items-center justify-end gap-6 px-6 py-2">
           <span className="flex items-center gap-1.5 opacity-90">
@@ -52,22 +52,40 @@ export default function Navbar({ onSchedule, onJoin, onHost }: NavbarProps) {
       </div>
 
       <div className="border-b border-zoom-border bg-zoom-card shadow-sm">
-        <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between gap-4 px-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-6">
-            <span className="shrink-0 text-xl font-bold tracking-tight text-zoom-primary sm:text-2xl">
+        <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between gap-3 px-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen((o) => !o)}
+              className="rounded-lg p-2 text-zoom-muted hover:bg-zoom-border/40 lg:hidden"
+              aria-label="Open menu"
+            >
+              {mobileNavOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+            <span className="shrink-0 text-xl font-bold tracking-tight text-zoom-primary">
               zoom
             </span>
-            <nav className="hidden items-center gap-5 text-sm font-medium text-zoom-muted md:flex">
-              <span className="cursor-default transition-colors hover:text-zoom-text">
-                Products
-              </span>
-              <span className="cursor-default transition-colors hover:text-zoom-text">
-                Solutions
-              </span>
-              <span className="cursor-default transition-colors hover:text-zoom-text">
-                Resources
-              </span>
+            <nav className="ml-4 hidden items-center gap-5 text-sm font-medium text-zoom-muted lg:flex">
+              <span className="cursor-default hover:text-zoom-text">Products</span>
+              <span className="cursor-default hover:text-zoom-text">Solutions</span>
+              <span className="cursor-default hover:text-zoom-text">Resources</span>
             </nav>
+          </div>
+
+          <div className="mx-4 hidden max-w-md flex-1 md:block">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zoom-muted" />
+              <input
+                type="search"
+                placeholder="Search"
+                className="zoom-input w-full py-2 pl-9 text-sm"
+                aria-label="Search"
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
@@ -107,7 +125,7 @@ export default function Navbar({ onSchedule, onJoin, onHost }: NavbarProps) {
                         setHostOpen(false);
                         onHost();
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-zoom-text transition-colors hover:bg-zoom-border/40"
+                      className="w-full px-4 py-2.5 text-left text-sm text-zoom-text hover:bg-zoom-border/40"
                     >
                       Start with video
                     </button>
@@ -117,7 +135,7 @@ export default function Navbar({ onSchedule, onJoin, onHost }: NavbarProps) {
                         setHostOpen(false);
                         onHost();
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-zoom-text transition-colors hover:bg-zoom-border/40"
+                      className="w-full px-4 py-2.5 text-left text-sm text-zoom-text hover:bg-zoom-border/40"
                     >
                       New meeting
                     </button>
@@ -126,28 +144,23 @@ export default function Navbar({ onSchedule, onJoin, onHost }: NavbarProps) {
               </div>
             )}
 
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
+
             <button
               type="button"
-              onClick={toggleTheme}
-              aria-label={
-                theme === "light"
-                  ? "Switch to dark mode"
-                  : "Switch to light mode"
-              }
-              className="rounded-full p-2 text-zoom-muted transition-colors hover:bg-zoom-border/40 hover:text-zoom-text"
+              className="hidden rounded-full p-2 text-zoom-muted transition-colors hover:bg-zoom-border/40 hover:text-zoom-text md:block"
+              aria-label="Settings"
             >
-              {theme === "light" ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
+              <Settings className="h-5 w-5" />
             </button>
 
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
                 onClick={() => setMenuOpen((open) => !open)}
-                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-zoom-purple text-sm font-semibold text-white ring-2 ring-transparent transition-shadow hover:ring-zoom-primary/30"
+                className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-zoom-purple text-sm font-semibold text-white ring-2 ring-transparent hover:ring-zoom-primary/30"
                 title={name}
               >
                 {image ? (
@@ -165,22 +178,19 @@ export default function Navbar({ onSchedule, onJoin, onHost }: NavbarProps) {
               {menuOpen && (
                 <div className="absolute right-0 mt-2 w-56 rounded-xl border border-zoom-border bg-zoom-card py-2 shadow-zoom-md">
                   <div className="border-b border-zoom-border px-4 py-3">
-                    <p className="truncate font-semibold text-zoom-text">
-                      {name}
-                    </p>
+                    <p className="truncate font-semibold text-zoom-text">{name}</p>
                     {email && (
-                      <p className="truncate text-xs text-zoom-muted">
-                        {email}
-                      </p>
+                      <p className="truncate text-xs text-zoom-muted">{email}</p>
                     )}
-                    <span className="mt-2 inline-block rounded bg-zoom-bg px-2 py-0.5 text-xs font-medium text-zoom-muted">
-                      Basic
-                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2.5 sm:hidden">
+                    <ThemeToggle size="sm" />
+                    <span className="text-sm text-zoom-text">Toggle theme</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => signOut({ callbackUrl: "/login" })}
-                    className="w-full px-4 py-2.5 text-left text-sm text-zoom-text transition-colors hover:bg-zoom-border/40"
+                    className="w-full px-4 py-2.5 text-left text-sm text-zoom-text hover:bg-zoom-border/40"
                   >
                     Sign Out
                   </button>
@@ -189,6 +199,56 @@ export default function Navbar({ onSchedule, onJoin, onHost }: NavbarProps) {
             </div>
           </div>
         </div>
+
+        {mobileNavOpen && (
+          <div className="border-t border-zoom-border bg-zoom-card px-4 py-3 lg:hidden">
+            <nav className="flex flex-col gap-1">
+              {onSchedule && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileNavOpen(false);
+                    onSchedule();
+                  }}
+                  className="rounded-lg px-3 py-3 text-left text-sm font-medium text-zoom-text hover:bg-zoom-border/40"
+                >
+                  Schedule
+                </button>
+              )}
+              {onJoin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileNavOpen(false);
+                    onJoin();
+                  }}
+                  className="rounded-lg px-3 py-3 text-left text-sm font-medium text-zoom-text hover:bg-zoom-border/40"
+                >
+                  Join
+                </button>
+              )}
+              {onHost && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileNavOpen(false);
+                    onHost();
+                  }}
+                  className="rounded-lg px-3 py-3 text-left text-sm font-medium text-zoom-text hover:bg-zoom-border/40"
+                >
+                  Host meeting
+                </button>
+              )}
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-lg px-3 py-3 text-left text-sm font-medium text-zoom-text hover:bg-zoom-border/40"
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </button>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

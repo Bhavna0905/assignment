@@ -1,4 +1,11 @@
 const PMI_STORAGE_PREFIX = "zoom-pmi-";
+const PMI_SETTINGS_PREFIX = "zoom-pmi-settings-";
+
+export type PersonalRoomSettings = {
+  topic: string;
+  passcode: string;
+  waitingRoom: boolean;
+};
 
 export function formatPmiDisplay(digits: string): string {
   const d = digits.replace(/\D/g, "");
@@ -11,13 +18,80 @@ export function formatPmiDisplay(digits: string): string {
   return digits;
 }
 
-export function getPersonalMeetingRoom(userKey: string, displayName: string) {
+function defaultTopic(displayName: string): string {
+  return `${displayName}'s Personal Meeting Room`;
+}
+
+function settingsKey(userKey: string): string {
+  return `${PMI_SETTINGS_PREFIX}${userKey}`;
+}
+
+export function getPersonalRoomSettings(
+  userKey: string,
+  displayName: string
+): PersonalRoomSettings {
+  const fallback: PersonalRoomSettings = {
+    topic: defaultTopic(displayName),
+    passcode: "123456",
+    waitingRoom: true,
+  };
+
+  if (typeof window === "undefined") return fallback;
+
+  try {
+    const raw = localStorage.getItem(settingsKey(userKey));
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as Partial<PersonalRoomSettings>;
+    return {
+      topic:
+        typeof parsed.topic === "string" && parsed.topic.trim()
+          ? parsed.topic.trim()
+          : fallback.topic,
+      passcode:
+        typeof parsed.passcode === "string" && parsed.passcode.length > 0
+          ? parsed.passcode
+          : fallback.passcode,
+      waitingRoom:
+        typeof parsed.waitingRoom === "boolean"
+          ? parsed.waitingRoom
+          : fallback.waitingRoom,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+export function savePersonalRoomSettings(
+  userKey: string,
+  settings: PersonalRoomSettings
+): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(settingsKey(userKey), JSON.stringify(settings));
+}
+
+export type PersonalMeetingRoom = {
+  topic: string;
+  meetingId: string;
+  meetingIdRaw: string;
+  inviteUrl: string;
+  passcode: string;
+  waitingRoom: boolean;
+};
+
+export function getPersonalMeetingRoom(
+  userKey: string,
+  displayName: string
+): PersonalMeetingRoom {
+  const settings = getPersonalRoomSettings(userKey, displayName);
+
   if (typeof window === "undefined") {
     return {
-      topic: `${displayName}'s Personal Meeting Room`,
+      topic: settings.topic,
       meetingId: "000 000 0000",
       meetingIdRaw: "0000000000",
       inviteUrl: "",
+      passcode: settings.passcode,
+      waitingRoom: settings.waitingRoom,
     };
   }
 
@@ -28,16 +102,19 @@ export function getPersonalMeetingRoom(userKey: string, displayName: string) {
     localStorage.setItem(key, raw);
   }
 
-  const invitePath = raw.length === 10
-    ? `${raw.slice(0, 3)}-${raw.slice(3, 7)}-${raw.slice(7)}`
-    : raw;
+  const invitePath =
+    raw.length === 10
+      ? `${raw.slice(0, 3)}-${raw.slice(3, 7)}-${raw.slice(7)}`
+      : raw;
 
   const origin = window.location.origin;
 
   return {
-    topic: `${displayName}'s Personal Meeting Room`,
+    topic: settings.topic,
     meetingId: formatPmiDisplay(raw),
     meetingIdRaw: raw,
     inviteUrl: `${origin}/meeting/${invitePath}`,
+    passcode: settings.passcode,
+    waitingRoom: settings.waitingRoom,
   };
 }

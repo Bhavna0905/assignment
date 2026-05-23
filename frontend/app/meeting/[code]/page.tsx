@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import MeetingChatPanel from "@/components/MeetingChatPanel";
 import MeetingControls from "@/components/MeetingControls";
 import PreJoin from "@/components/PreJoin";
+import Toast from "@/components/Toast";
 import VideoGrid from "@/components/VideoGrid";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import { api, setApiUserEmail } from "@/lib/api";
@@ -35,6 +36,7 @@ export default function MeetingPage() {
   const [joining, setJoining] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatDraft, setChatDraft] = useState("");
+  const [pinnedPeerId, setPinnedPeerId] = useState<string | null>(null);
 
   const displayName = joinSession?.displayName ?? "";
   const isMeetingHost = joinSession?.isHost ?? false;
@@ -56,10 +58,15 @@ export default function MeetingPage() {
 
   const {
     localStream,
+    localCameraStream,
     peers,
     isMuted,
     isCameraOff,
     isSharingScreen,
+    screenStream,
+    activeSpeaker,
+    shareError,
+    clearShareError,
     toggleMic,
     toggleCamera,
     toggleScreenShare,
@@ -78,6 +85,16 @@ export default function MeetingPage() {
     sendChatMessage,
     clearChatUnread,
   } = useWebRTC(code, displayName, joined, isMeetingHost, handleKicked, chatOpen);
+
+  const handleTogglePin = useCallback((peerId: string) => {
+    setPinnedPeerId((current) => (current === peerId ? null : peerId));
+  }, []);
+
+  useEffect(() => {
+    if (pinnedPeerId && pinnedPeerId !== myPeerId && !peers.has(pinnedPeerId)) {
+      setPinnedPeerId(null);
+    }
+  }, [peers, pinnedPeerId, myPeerId]);
 
   const handleToggleChat = useCallback(() => {
     setChatOpen((open) => {
@@ -186,8 +203,17 @@ export default function MeetingPage() {
 
   const showServerError = rtcError && canRetry;
 
+  const screenSharingPeerId = activeSpeaker;
+
   return (
     <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-zoom-navy">
+      {shareError && (
+        <Toast
+          message={shareError}
+          variant="info"
+          onDismiss={clearShareError}
+        />
+      )}
       {showServerError && (
         <div className="flex flex-col gap-2 bg-red-600 px-3 py-2 text-sm text-white sm:flex-row sm:items-center sm:justify-between sm:px-4">
           <span className="text-center sm:text-left">
@@ -210,12 +236,18 @@ export default function MeetingPage() {
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         <div className="min-h-0 min-w-0 flex-1">
           <VideoGrid
-          localStream={localStream}
-          localName={displayName}
-          isMuted={isMuted}
-          isCameraOff={isCameraOff}
-          isSharingScreen={isSharingScreen}
+            localStream={localStream}
+            localCameraStream={localCameraStream}
+            localName={displayName}
+            isMuted={isMuted}
+            isCameraOff={isCameraOff}
+            isSharingScreen={isSharingScreen}
+            screenStream={screenStream}
+            screenSharingPeerId={screenSharingPeerId}
             peers={peers}
+            myPeerId={myPeerId}
+            pinnedPeerId={pinnedPeerId}
+            onTogglePin={handleTogglePin}
           />
         </div>
         <MeetingChatPanel
@@ -246,6 +278,8 @@ export default function MeetingPage() {
         chatOpen={chatOpen}
         chatUnreadCount={chatUnreadCount}
         onToggleChat={handleToggleChat}
+        pinnedPeerId={pinnedPeerId}
+        onTogglePin={handleTogglePin}
       />
     </div>
   );

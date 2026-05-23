@@ -26,10 +26,10 @@ export default function MeetingList({
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+    <div className="mt-6 grid grid-cols-1 gap-6 px-4 md:grid-cols-2 md:gap-8 md:px-0">
       <section className={hideUpcoming ? "hidden" : undefined}>
         <h2 className="mb-4 text-lg font-bold text-zoom-text">
-          Upcoming
+          Upcoming Meetings
         </h2>
         {upcoming.length === 0 ? (
           <div className="zoom-card flex flex-col items-center border-dashed px-6 py-10 text-center">
@@ -43,27 +43,29 @@ export default function MeetingList({
             {upcoming.map((meeting) => (
               <li
                 key={meeting.id}
-                className="zoom-card p-4 transition-shadow hover:shadow-zoom-md"
+                className="zoom-card flex flex-col gap-2 p-4 transition-shadow hover:shadow-zoom-md md:flex-row md:items-center md:justify-between md:gap-4"
               >
-                <h3 className="truncate font-semibold text-zoom-text">
-                  {meeting.title}
-                </h3>
-                {meeting.scheduled_start && (
-                  <p className="mt-1 text-sm text-zoom-muted">
-                    {formatMeetingDateTime(meeting.scheduled_start)}
-                    {meeting.duration_minutes
-                      ? ` · ${meeting.duration_minutes} min`
-                      : ""}
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-semibold text-zoom-text">
+                    {meeting.title}
+                  </h3>
+                  {meeting.scheduled_start && (
+                    <p className="mt-1 text-sm text-zoom-muted">
+                      {formatMeetingDateTime(meeting.scheduled_start)}
+                      {meeting.duration_minutes
+                        ? ` · ${meeting.duration_minutes} min`
+                        : ""}
+                    </p>
+                  )}
+                  <p className="mt-1 font-mono text-sm text-zoom-muted">
+                    {meeting.meeting_code}
                   </p>
-                )}
-                <p className="mt-1 font-mono text-sm text-zoom-muted">
-                  {meeting.meeting_code}
-                </p>
-                <div className="relative mt-3 w-full sm:w-auto">
+                </div>
+                <div className="relative w-full shrink-0 md:w-auto">
                   <button
                     type="button"
                     onClick={() => handleCopyInvite(meeting.meeting_code)}
-                    className="zoom-btn-primary w-full sm:w-auto"
+                    className="zoom-btn-primary min-h-[44px] w-full md:w-auto"
                   >
                     Copy invite
                   </button>
@@ -82,7 +84,7 @@ export default function MeetingList({
       <section className={hideUpcoming ? "lg:col-span-2" : ""}>
         {!hideUpcoming && (
           <h2 className="mb-4 text-lg font-bold text-zoom-text">
-            Recent
+            Recent Meetings
           </h2>
         )}
         {recent.length === 0 ? (

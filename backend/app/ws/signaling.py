@@ -45,6 +45,7 @@ async def signaling_endpoint(
                     "name": p.name,
                     "muted": p.muted,
                     "cameraOff": p.camera_off,
+                    "screenSharing": p.screen_sharing,
                 }
                 for p in existing.values()
             ],
@@ -76,6 +77,7 @@ async def signaling_endpoint(
             elif msg_type == "state":
                 peer.muted = data.get("muted", peer.muted)
                 peer.camera_off = data.get("cameraOff", peer.camera_off)
+                peer.screen_sharing = data.get("screenSharing", peer.screen_sharing)
                 await room_manager.broadcast(
                     meeting_code,
                     {
@@ -83,6 +85,7 @@ async def signaling_endpoint(
                         "peerId": peer_id,
                         "muted": peer.muted,
                         "cameraOff": peer.camera_off,
+                        "screenSharing": peer.screen_sharing,
                     },
                     exclude_peer_id=peer_id,
                 )

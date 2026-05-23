@@ -1,8 +1,10 @@
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   Globe,
   Shield,
@@ -10,6 +12,9 @@ import {
   Video,
   Zap,
 } from "lucide-react";
+
+const LOGIN_HERO_IMAGE =
+  "https://media.licdn.com/dms/image/v2/D4E12AQHtRLEUCutIhQ/article-cover_image-shrink_720_1280/B4EZ1jCujlHYAI-/0/1775483157589?e=2147483647&v=beta&t=mTzZ6Vv27tb5K6-rR_m72WVH6Va0Ekba2ZF-Gy2Zl7g";
 
 const features = [
   {
@@ -54,33 +59,36 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-zoom-bg">
-      <header className="border-b border-zoom-border bg-white dark:border-gray-700 dark:bg-zoom-card">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+      <header className="border-b border-zoom-border bg-zoom-card">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <span className="text-2xl font-bold text-zoom-primary">zoom</span>
           <nav className="hidden items-center gap-6 text-sm font-medium text-zoom-muted md:flex">
             <span>Products</span>
             <span>Solutions</span>
             <span>Pricing</span>
           </nav>
-          <button
-            type="button"
-            onClick={() => signIn("google")}
-            className="zoom-btn-primary text-sm"
-          >
-            Sign in
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => signIn("google")}
+              className="zoom-btn-primary text-sm"
+            >
+              Sign in
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="flex-1">
-        <section className="border-b border-zoom-border bg-white dark:border-gray-700 dark:bg-zoom-card">
+        <section className="bg-zoom-card">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-20">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full bg-zoom-primary/10 px-3 py-1 text-sm font-semibold text-zoom-primary">
                 <Zap className="h-4 w-4" />
                 Video conferencing reimagined
               </p>
-              <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-zoom-text sm:text-5xl dark:text-gray-100">
+              <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-zoom-text sm:text-5xl">
                 One platform to{" "}
                 <span className="text-zoom-primary">connect</span> your world
               </h1>
@@ -92,23 +100,31 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => signIn("google")}
-                  className="zoom-btn-primary px-8 py-3.5 text-base"
+                  className="zoom-btn-primary min-h-[48px] w-full px-8 py-3.5 text-base sm:w-auto"
                 >
                   Sign in with Google
                 </button>
                 <button
                   type="button"
                   onClick={() => signIn("google")}
-                  className="zoom-btn-outline px-8 py-3.5 text-base"
+                  className="zoom-btn-outline min-h-[48px] w-full px-8 py-3.5 text-base sm:w-auto"
                 >
                   Join a meeting
                 </button>
               </div>
             </div>
-            <div className="zoom-card relative overflow-hidden p-8">
-              <div className="absolute -right-6 -top-6 h-40 w-40 rounded-full bg-zoom-primary/15 blur-2xl" />
-              <div className="relative aspect-video rounded-xl bg-gradient-to-br from-zoom-primary/20 to-indigo-100 dark:from-zoom-primary/30 dark:to-gray-800" />
-              <p className="relative mt-4 text-center text-sm font-medium text-zoom-muted">
+            <div className="overflow-hidden rounded-xl p-0 sm:p-0">
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl">
+                <Image
+                  src={LOGIN_HERO_IMAGE}
+                  alt="Productive team collaboration anywhere"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  priority
+                />
+              </div>
+              <p className="mt-4 text-center text-sm font-medium text-zoom-muted">
                 Enterprise-grade meetings for teams of every size
               </p>
             </div>
@@ -116,7 +132,7 @@ export default function LoginPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <h2 className="text-center text-2xl font-bold text-zoom-text sm:text-3xl dark:text-gray-100">
+          <h2 className="text-center text-2xl font-bold text-zoom-text sm:text-3xl">
             Everything you need to meet online
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-zoom-muted">
@@ -132,7 +148,7 @@ export default function LoginPage() {
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-zoom-primary/10 text-zoom-primary">
                   <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="mt-4 font-bold text-zoom-text dark:text-gray-100">
+                <h3 className="mt-4 font-bold text-zoom-text">
                   {title}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-zoom-muted">
@@ -143,15 +159,15 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <section className="border-t border-zoom-border bg-white dark:border-gray-700 dark:bg-zoom-card">
+        <section className="border-t border-zoom-border bg-zoom-card">
           <div className="mx-auto max-w-md px-4 py-12 text-center sm:px-6">
-            <h2 className="text-xl font-bold text-zoom-text dark:text-gray-100">
+            <h2 className="text-xl font-bold text-zoom-text">
               Ready to get started?
             </h2>
             <button
               type="button"
               onClick={() => signIn("google")}
-              className="zoom-btn-primary mt-6 w-full max-w-sm"
+              className="zoom-btn-primary mt-6 min-h-[48px] w-full max-w-sm"
             >
               <span className="flex items-center justify-center gap-2">
                 <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>

@@ -11,6 +11,7 @@ class PeerInfo:
     websocket: WebSocket
     muted: bool = False
     camera_off: bool = False
+    screen_sharing: bool = False
     in_meeting_chat: bool = False
 
 

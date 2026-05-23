@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Meeting } from "@/lib/types";
@@ -131,8 +132,16 @@ export default function ScheduleModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-2xl bg-zoom-card px-4 py-5 text-zoom-text shadow-zoom-md sm:rounded-xl sm:px-6 sm:py-6">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center md:bg-black/50 md:p-4">
+      <div className="flex h-full w-full max-w-lg flex-col overflow-y-auto overscroll-contain bg-zoom-card px-4 py-5 text-zoom-text shadow-zoom-md md:h-auto md:max-h-[92dvh] md:rounded-xl md:px-6 md:py-6">
+        <button
+          type="button"
+          onClick={onClose}
+          className="mb-4 flex items-center gap-2 text-sm text-zoom-muted hover:text-zoom-text md:hidden"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          Back
+        </button>
         <h2 className="text-lg font-bold text-zoom-text sm:text-xl">
           Schedule a meeting
         </h2>
@@ -178,7 +187,7 @@ export default function ScheduleModal({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="zoom-input mt-1 text-base sm:text-sm"
+                  className="zoom-input mt-1 min-h-[44px] text-base sm:text-sm"
                 />
               </label>
               <label className="block text-sm font-medium text-zoom-muted">
@@ -198,7 +207,7 @@ export default function ScheduleModal({
                     value={date}
                     min={todayDateString()}
                     onChange={(e) => setDate(e.target.value)}
-                    className="zoom-input mt-1 text-base sm:text-sm"
+                    className="zoom-input mt-1 min-h-[44px] text-base sm:text-sm"
                   />
                 </label>
                 <div className="block text-sm font-medium text-zoom-muted">
@@ -208,7 +217,7 @@ export default function ScheduleModal({
                       value={hour}
                       onChange={(e) => setHour(e.target.value)}
                       aria-label="Hour"
-                      className="zoom-input mt-1 text-base sm:text-sm"
+                      className="zoom-input mt-1 min-h-[44px] text-base sm:text-sm"
                     >
                       <option value="">Hour</option>
                       {HOURS_12.map((h) => (
@@ -222,7 +231,7 @@ export default function ScheduleModal({
                       value={minute}
                       onChange={(e) => setMinute(e.target.value)}
                       aria-label="Minute"
-                      className="zoom-input mt-1 text-base sm:text-sm"
+                      className="zoom-input mt-1 min-h-[44px] text-base sm:text-sm"
                     >
                       <option value="">Min</option>
                       {MINUTES.map((m) => (
@@ -248,7 +257,7 @@ export default function ScheduleModal({
                 <select
                   value={duration}
                   onChange={(e) => setDuration(Number(e.target.value))}
-                  className="zoom-input mt-1 text-base sm:text-sm"
+                  className="zoom-input mt-1 min-h-[44px] text-base sm:text-sm"
                 >
                   {DURATIONS.map((m) => (
                     <option key={m} value={m}>

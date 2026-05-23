@@ -1,6 +1,6 @@
 "use client";
 
-import { MicOff, UserMinus, X } from "lucide-react";
+import { MicOff, Pin, UserMinus, X } from "lucide-react";
 import type { MeetingParticipant } from "@/lib/types";
 
 interface ParticipantsPanelProps {
@@ -10,6 +10,8 @@ interface ParticipantsPanelProps {
   isHost: boolean;
   onMuteAll: () => void;
   onRemoveParticipant: (peerId: string) => void;
+  pinnedPeerId?: string | null;
+  onTogglePin?: (peerId: string) => void;
 }
 
 export default function ParticipantsPanel({
@@ -19,6 +21,8 @@ export default function ParticipantsPanel({
   isHost,
   onMuteAll,
   onRemoveParticipant,
+  pinnedPeerId = null,
+  onTogglePin,
 }: ParticipantsPanelProps) {
   if (!open) return null;
 
@@ -82,17 +86,40 @@ export default function ParticipantsPanel({
                   <span className="text-xs text-[#747487]">Muted</span>
                 )}
               </div>
-              {isHost && !p.isLocal && (
-                <button
-                  type="button"
-                  onClick={() => onRemoveParticipant(p.peerId)}
-                  className="shrink-0 rounded p-2 text-red-400 transition hover:bg-red-600/20 hover:text-red-300"
-                  aria-label={`Remove ${p.name}`}
-                  title="Remove from meeting"
-                >
-                  <UserMinus className="h-4 w-4" />
-                </button>
-              )}
+              <div className="flex shrink-0 items-center gap-1">
+                {onTogglePin && !p.isLocal && (
+                  <button
+                    type="button"
+                    onClick={() => onTogglePin(p.peerId)}
+                    className={`rounded p-2 transition ${
+                      pinnedPeerId === p.peerId
+                        ? "bg-zoom-primary/20 text-zoom-primary"
+                        : "text-[#747487] hover:bg-[#2C2C2C] hover:text-white"
+                    }`}
+                    aria-label={
+                      pinnedPeerId === p.peerId
+                        ? `Unpin ${p.name}`
+                        : `Pin ${p.name}`
+                    }
+                    title={
+                      pinnedPeerId === p.peerId ? "Unpin" : "Pin participant"
+                    }
+                  >
+                    <Pin className="h-4 w-4" />
+                  </button>
+                )}
+                {isHost && !p.isLocal && (
+                  <button
+                    type="button"
+                    onClick={() => onRemoveParticipant(p.peerId)}
+                    className="rounded p-2 text-red-400 transition hover:bg-red-600/20 hover:text-red-300"
+                    aria-label={`Remove ${p.name}`}
+                    title="Remove from meeting"
+                  >
+                    <UserMinus className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>

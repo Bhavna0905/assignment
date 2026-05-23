@@ -20,20 +20,28 @@ function authHeaders(extra?: HeadersInit): HeadersInit {
   return headers;
 }
 
+const REQUEST_TIMEOUT_MS = 8_000;
+
 function networkErrorMessage(): string {
   const base = getApiBase();
   return `Cannot reach the server at ${base}. Start the backend (uvicorn on port 8000) and refresh.`;
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
   let res: Response;
   try {
     res = await fetch(url, {
       ...init,
+      signal: controller.signal,
       headers: authHeaders(init?.headers),
     });
   } catch {
     throw new Error(networkErrorMessage());
+  } finally {
+    clearTimeout(timeoutId);
   }
   if (!res.ok) {
     let detail = res.statusText;
@@ -50,12 +58,18 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   health: async (): Promise<{ status: string }> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5_000);
     try {
-      const res = await fetch(`${getApiBase()}/api/health`);
+      const res = await fetch(`${getApiBase()}/api/health`, {
+        signal: controller.signal,
+      });
       if (!res.ok) throw new Error("unhealthy");
       return res.json() as Promise<{ status: string }>;
     } catch {
       throw new Error(networkErrorMessage());
+    } finally {
+      clearTimeout(timeoutId);
     }
   },
 

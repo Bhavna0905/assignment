@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ActionTiles from "@/components/ActionTiles";
@@ -11,7 +12,6 @@ import DashboardSidebar, {
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 import JoinModal from "@/components/JoinModal";
 import MeetingList from "@/components/MeetingList";
-import MeetingsSection from "@/components/MeetingsSection";
 import Navbar from "@/components/Navbar";
 import ProfileCard from "@/components/ProfileCard";
 import PromoBanner from "@/components/PromoBanner";
@@ -22,13 +22,17 @@ import { api, setApiUserEmail } from "@/lib/api";
 import { consumeFlash } from "@/lib/flash";
 import type { Meeting, User } from "@/lib/types";
 
+const MeetingsSection = dynamic(() => import("@/components/MeetingsSection"), {
+  loading: () => <DashboardSkeleton />,
+});
+
 export default function HomePage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [upcoming, setUpcoming] = useState<Meeting[]>([]);
   const [recent, setRecent] = useState<Meeting[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [bootstrapping, setBootstrapping] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
@@ -67,19 +71,21 @@ export default function HomePage() {
       avatar_url: session.user.image ?? undefined,
     });
     setUser(synced);
-    await loadMeetings();
+    const meetings = await api.getMeetings();
+    setUpcoming(meetings.upcoming);
+    setRecent(meetings.recent);
     setApiError(null);
-  }, [session, loadMeetings]);
+  }, [session]);
 
   useEffect(() => {
     if (status === "loading") return;
 
     if (!session?.user?.email) {
-      setLoading(false);
       return;
     }
 
     let cancelled = false;
+    setBootstrapping(true);
 
     (async () => {
       try {
@@ -93,7 +99,7 @@ export default function HomePage() {
           );
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setBootstrapping(false);
       }
     })();
 
@@ -175,35 +181,10 @@ export default function HomePage() {
   const isMeetingsView = activeSection === "meetings";
   const showHomeExtras = activeSection === "home";
 
-  if (status === "loading" || loading) {
+  if (status === "loading") {
     return (
-      <div className="min-h-dvh bg-zoom-bg text-zoom-text">
-        <Navbar {...navProps} />
-        {flash && (
-          <Toast
-            message={flash.message}
-            variant={flash.variant}
-            onDismiss={() => setFlash(null)}
-          />
-        )}
-        <div className="flex flex-col pt-14 lg:flex-row lg:pt-[5.25rem]">
-          <DashboardSidebar
-            activeSection={activeSection}
-            onNavigate={handleNavigate}
-          />
-          <main className="min-w-0 flex-1 px-3 py-5 pb-safe sm:px-6 sm:py-8">
-            <div className="mb-6 h-24 animate-pulse rounded-xl bg-zoom-border/40" />
-            <div className="mb-6 grid grid-cols-3 gap-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-20 animate-pulse rounded-xl bg-zoom-border/40"
-                />
-              ))}
-            </div>
-            <DashboardSkeleton />
-          </main>
-        </div>
+      <div className="flex min-h-dvh items-center justify-center bg-zoom-bg text-zoom-muted">
+        Loading…
       </div>
     );
   }
@@ -232,7 +213,7 @@ export default function HomePage() {
           onNavigate={handleNavigate}
         />
 
-        <div className="flex min-w-0 flex-1 flex-col xl:flex-row">
+        <div className="mx-auto flex min-w-0 w-full max-w-[1600px] flex-1 flex-col lg:flex-row">
           <main className="min-w-0 flex-1 px-3 py-5 pb-safe sm:px-6 sm:py-8">
             {isMeetingsView ? (
               <MeetingsSection
@@ -254,45 +235,34 @@ export default function HomePage() {
 
                 {showHomeExtras && <PromoBanner />}
 
-                <div className="mt-6 lg:hidden">
-                  <ActionTiles
-                    onNewMeeting={handleNewMeeting}
-                    onJoinMeeting={() => setJoinOpen(true)}
-                    onScheduleMeeting={() => setScheduleOpen(true)}
-                  />
-                </div>
-
                 <section id="dashboard-meetings" className="mt-8 scroll-mt-24">
                   <h2 className="mb-4 text-lg font-bold text-zoom-text">
                     Recent activity
                   </h2>
-                  <MeetingList
-                    upcoming={upcoming}
-                    recent={recent}
-                    hideUpcoming
-                  />
+                  {bootstrapping ? (
+                    <DashboardSkeleton />
+                  ) : (
+                    <MeetingList
+                      upcoming={upcoming}
+                      recent={recent}
+                      hideUpcoming
+                    />
+                  )}
                 </section>
               </>
             )}
           </main>
 
           {!isMeetingsView && (
-            <aside className="w-full shrink-0 space-y-4 border-t border-zoom-border bg-zoom-card/80 px-3 py-5 pb-safe sm:px-6 xl:w-80 xl:border-l xl:border-t-0 xl:py-8">
-              <div className="hidden lg:block">
-                <ActionTiles
-                  onNewMeeting={handleNewMeeting}
-                  onJoinMeeting={() => setJoinOpen(true)}
-                  onScheduleMeeting={() => setScheduleOpen(true)}
-                />
-              </div>
-              <div className="hidden lg:block">
-                <UpcomingMeetingsCard upcoming={upcoming} />
-              </div>
-              {activeSection === "home" && (
-                <div className="lg:hidden">
-                  <UpcomingMeetingsCard upcoming={upcoming} />
-                </div>
-              )}
+            <aside className="w-full shrink-0 space-y-4 border-t border-zoom-border px-3 py-5 pb-safe sm:px-6 lg:w-[340px] lg:border-l lg:border-t-0 lg:py-8">
+              <ActionTiles
+                displayName={displayName}
+                userKey={userKey}
+                onNewMeeting={handleNewMeeting}
+                onJoinMeeting={() => setJoinOpen(true)}
+                onScheduleMeeting={() => setScheduleOpen(true)}
+              />
+              <UpcomingMeetingsCard upcoming={upcoming} />
             </aside>
           )}
         </div>

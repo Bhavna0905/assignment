@@ -11,8 +11,14 @@ import {
   Shield,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { getPersonalMeetingRoom } from "@/lib/personal-room";
+import { useCallback, useMemo, useState } from "react";
+import PersonalRoomEditModal from "@/components/PersonalRoomEditModal";
+import {
+  getPersonalMeetingRoom,
+  getPersonalRoomSettings,
+  savePersonalRoomSettings,
+  type PersonalRoomSettings,
+} from "@/lib/personal-room";
 import type { Meeting } from "@/lib/types";
 import { formatMeetingDateTime, getMeetingInviteUrl } from "@/lib/utils";
 
@@ -87,13 +93,27 @@ export default function MeetingsSection({
   const [showPasscode, setShowPasscode] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState(defaultDateRange);
+  const [pmiVersion, setPmiVersion] = useState(0);
+  const [editPmiOpen, setEditPmiOpen] = useState(false);
 
   const personalRoom = useMemo(
     () => getPersonalMeetingRoom(userKey, displayName),
-    [userKey, displayName]
+    [userKey, displayName, pmiVersion]
   );
 
-  const passcode = "123456";
+  const pmiSettings = useMemo(
+    () => getPersonalRoomSettings(userKey, displayName),
+    [userKey, displayName, pmiVersion]
+  );
+
+  const handleSavePmiSettings = useCallback(
+    (settings: PersonalRoomSettings) => {
+      savePersonalRoomSettings(userKey, settings);
+      setPmiVersion((v) => v + 1);
+      setEditPmiOpen(false);
+    },
+    [userKey]
+  );
 
   const copyText = async (text: string, key: string) => {
     await navigator.clipboard.writeText(text);
@@ -180,13 +200,15 @@ export default function MeetingsSection({
         {tab === "personal-room" && (
           <PersonalRoomTab
             room={personalRoom}
-            passcode={passcode}
+            passcode={personalRoom.passcode}
+            waitingRoom={personalRoom.waitingRoom}
             showPasscode={showPasscode}
             onTogglePasscode={() => setShowPasscode((s) => !s)}
             onCopy={copyText}
             copied={copied}
             onStart={onStartPersonalRoom}
             starting={startingPersonal}
+            onEdit={() => setEditPmiOpen(true)}
           />
         )}
 
@@ -201,6 +223,14 @@ export default function MeetingsSection({
           />
         )}
       </div>
+
+      <PersonalRoomEditModal
+        open={editPmiOpen}
+        initial={pmiSettings}
+        meetingIdDisplay={personalRoom.meetingId}
+        onClose={() => setEditPmiOpen(false)}
+        onSave={handleSavePmiSettings}
+      />
     </div>
   );
 }
@@ -375,21 +405,25 @@ function PreviousTab({
 function PersonalRoomTab({
   room,
   passcode,
+  waitingRoom,
   showPasscode,
   onTogglePasscode,
   onCopy,
   copied,
   onStart,
   starting,
+  onEdit,
 }: {
   room: ReturnType<typeof getPersonalMeetingRoom>;
   passcode: string;
+  waitingRoom: boolean;
   showPasscode: boolean;
   onTogglePasscode: () => void;
   onCopy: (text: string, key: string) => void;
   copied: string | null;
   onStart: () => void;
   starting?: boolean;
+  onEdit: () => void;
 }) {
   return (
     <div className="max-w-2xl">
@@ -419,10 +453,12 @@ function PersonalRoomTab({
                 {showPasscode ? "Hide" : "Show"}
               </button>
             </p>
-            <p className="flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-green-600" />
-              Everyone goes into the waiting room
-            </p>
+            {waitingRoom && (
+              <p className="flex items-center gap-1.5">
+                <Check className="h-4 w-4 text-green-600" />
+                Everyone goes into the waiting room
+              </p>
+            )}
           </dd>
         </div>
         <div>
@@ -492,7 +528,7 @@ function PersonalRoomTab({
           <Copy className="h-4 w-4" />
           {copied === "pmi-invite" ? "Copied!" : "Copy Invitation"}
         </button>
-        <button type="button" className="zoom-btn-outline">
+        <button type="button" onClick={onEdit} className="zoom-btn-outline">
           Edit
         </button>
       </div>
