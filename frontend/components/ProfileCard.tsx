@@ -1,6 +1,6 @@
 "use client";
 
-import { getInitials } from "@/lib/utils";
+import UserAvatar from "@/components/UserAvatar";
 
 interface ProfileCardProps {
   name: string;
@@ -15,23 +15,16 @@ export default function ProfileCard({
   avatarUrl,
   planLabel = "Workplace Basic",
 }: ProfileCardProps) {
-  const initials = getInitials(name);
-
   return (
     <div className="zoom-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
       <div className="flex min-w-0 items-center gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zoom-purple text-lg font-bold text-white sm:h-16 sm:w-16">
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatarUrl}
-              alt={name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            initials
-          )}
-        </div>
+        <UserAvatar
+          name={name}
+          imageUrl={avatarUrl}
+          shape="rounded"
+          className="h-14 w-14 sm:h-16 sm:w-16"
+          textClassName="text-lg"
+        />
         <div className="min-w-0">
           <h1 className="truncate text-xl font-bold text-zoom-text sm:text-2xl">
             {name}

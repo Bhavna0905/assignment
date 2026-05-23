@@ -17,6 +17,7 @@ interface VideoTileProps {
   isPinned?: boolean;
   onTogglePin?: (peerId: string) => void;
   showPinMenu?: boolean;
+  fill?: boolean;
 }
 
 export default function VideoTile({
@@ -32,6 +33,7 @@ export default function VideoTile({
   isPinned = false,
   onTogglePin,
   showPinMenu = false,
+  fill = false,
 }: VideoTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -61,9 +63,11 @@ export default function VideoTile({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [menuOpen]);
 
-  const containerClass = small
-    ? "relative flex h-[120px] w-full shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#2C2C2C] transition-transform duration-300"
-    : "relative flex aspect-video min-h-0 w-full max-w-full items-center justify-center overflow-hidden rounded-lg bg-[#2C2C2C] transition-transform duration-300";
+  const containerClass = fill
+    ? "relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-lg bg-[#2C2C2C] transition-transform duration-300"
+    : small
+      ? "relative flex h-[120px] w-full shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#2C2C2C] transition-transform duration-300"
+      : "relative flex aspect-video min-h-0 w-full max-w-full items-center justify-center overflow-hidden rounded-lg bg-[#2C2C2C] transition-transform duration-300";
 
   const canPin = showPinMenu && peerId && onTogglePin && !isScreen;
 
@@ -156,10 +160,10 @@ export default function VideoTile({
 
       {!isScreen && (
         <span
-          className={`absolute max-w-[calc(100%-3rem)] truncate rounded bg-black/60 text-white ${
+          className={`absolute z-10 max-w-[calc(100%-2.75rem)] truncate rounded bg-black/70 text-white ${
             small
-              ? "bottom-1 left-1 px-1 py-0.5 text-[10px]"
-              : "bottom-1.5 left-1.5 px-1.5 py-0.5 text-xs sm:bottom-2 sm:left-2 sm:max-w-[70%] sm:px-2 sm:text-sm"
+              ? "bottom-1 left-1 px-1.5 py-0.5 text-[10px]"
+              : "bottom-2 left-2 max-w-[75%] px-2 py-0.5 text-xs sm:text-sm"
           }`}
         >
           {name}
@@ -168,8 +172,8 @@ export default function VideoTile({
 
       {!isScreen && (
         <span
-          className={`absolute ${
-            small ? "bottom-1 right-1" : "bottom-1.5 right-1.5 sm:bottom-2 sm:right-2"
+          className={`absolute z-10 ${
+            small ? "bottom-1 right-1" : "bottom-2 right-2"
           }`}
         >
           {muted ? (

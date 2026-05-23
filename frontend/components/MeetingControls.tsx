@@ -1,20 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
+  Copy,
   MessageSquare,
   Mic,
   MicOff,
   Monitor,
   MonitorOff,
   Phone,
+  Share2,
   Users,
   Video,
   VideoOff,
 } from "lucide-react";
+import MeetingControlButton from "@/components/MeetingControlButton";
 import ParticipantsPanel from "@/components/ParticipantsPanel";
 import { useCanScreenShare } from "@/hooks/useMediaQuery";
 import type { MeetingParticipant } from "@/lib/types";
+import { getMeetingInviteUrl } from "@/lib/utils";
 
 interface MeetingControlsProps {
   meetingCode: string;
@@ -35,40 +39,7 @@ interface MeetingControlsProps {
   onToggleChat: () => void;
   pinnedPeerId?: string | null;
   onTogglePin?: (peerId: string) => void;
-}
-
-function ControlButton({
-  onClick,
-  active,
-  activeStyle = "danger",
-  icon: Icon,
-  label,
-}: {
-  onClick: () => void;
-  active?: boolean;
-  activeStyle?: "danger" | "primary";
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-}) {
-  const activeClass =
-    activeStyle === "primary"
-      ? "bg-zoom-primary text-white hover:bg-zoom-primary-hover"
-      : "bg-red-600 text-white hover:bg-red-700";
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className={`flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-full transition md:h-14 md:w-14 ${
-        active
-          ? activeClass
-          : "bg-[#3D3D3D] text-white hover:bg-[#4D4D4D]"
-      }`}
-    >
-      <Icon className="h-5 w-5 md:h-6 md:w-6" />
-    </button>
-  );
+  onLinkCopied?: () => void;
 }
 
 export default function MeetingControls({
@@ -90,6 +61,7 @@ export default function MeetingControls({
   onToggleChat,
   pinnedPeerId = null,
   onTogglePin,
+  onLinkCopied,
 }: MeetingControlsProps) {
   const [participantsOpen, setParticipantsOpen] = useState(false);
   const canScreenShare = useCanScreenShare();
@@ -99,100 +71,179 @@ export default function MeetingControls({
     minute: "2-digit",
   });
 
-  const shareLabel = isSharingScreen ? "Stop Share" : "Share Screen";
+  const inviteUrl = getMeetingInviteUrl(meetingCode);
+  const shareText = `Join my meeting: ${inviteUrl}`;
+
+  const copyMeetingLink = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+    } catch {
+      try {
+        const input = document.createElement("textarea");
+        input.value = inviteUrl;
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+      } catch {
+        return;
+      }
+    }
+    onLinkCopied?.();
+  }, [inviteUrl, onLinkCopied]);
+
+  const shareMeetingLink = useCallback(async () => {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join my meeting",
+          text: shareText,
+          url: inviteUrl,
+        });
+        return;
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+      }
+    }
+    await copyMeetingLink();
+  }, [copyMeetingLink, inviteUrl, shareText]);
 
   return (
-    <footer className="shrink-0 border-t border-gray-700/50 bg-[#2D2D2D] pb-safe">
-      <div className="flex h-16 items-center justify-between px-3 md:h-20 md:px-4">
-        <div className="hidden min-w-0 flex-1 text-sm text-[#747487] md:block lg:max-w-[240px]">
-          <span className="truncate font-mono text-white">{meetingCode}</span>
-          <span> · {time}</span>
-        </div>
+    <footer className="shrink-0 border-t border-gray-700/50 bg-[#2D2D2D] pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="hidden min-w-0 px-3 pt-2 text-xs text-[#747487] md:block md:px-4">
+        <span className="truncate font-mono text-white">{meetingCode}</span>
+        <span> · {time}</span>
+      </div>
 
-        <div className="mx-auto flex items-center gap-2 md:gap-4">
-          <ControlButton
-            onClick={onToggleMic}
-            active={isMuted}
-            icon={isMuted ? MicOff : Mic}
-            label="Mute"
-          />
-          <ControlButton
-            onClick={onToggleCamera}
-            active={isCameraOff}
-            icon={isCameraOff ? VideoOff : Video}
-            label="Video"
-          />
-
-          {canScreenShare && (
-            <div className="hidden sm:flex">
-              <ControlButton
-                onClick={onToggleScreenShare}
-                active={isSharingScreen}
-                activeStyle="primary"
-                icon={isSharingScreen ? MonitorOff : Monitor}
-                label={shareLabel}
-              />
-            </div>
+      <div
+        className="mx-auto flex w-full max-w-[100vw] flex-wrap items-end justify-center gap-x-2 gap-y-2 px-2 py-2 sm:gap-x-2.5 sm:px-4 md:gap-x-3"
+        role="toolbar"
+        aria-label="Meeting controls"
+      >
+        <MeetingControlButton
+          onClick={onToggleMic}
+          active={isMuted}
+          label={isMuted ? "Unmute microphone" : "Mute microphone"}
+          tooltip={isMuted ? "Unmute" : "Mute"}
+        >
+          {isMuted ? (
+            <MicOff className="h-5 w-5" aria-hidden />
+          ) : (
+            <Mic className="h-5 w-5" aria-hidden />
           )}
+        </MeetingControlButton>
 
-          <button
-            type="button"
-            onClick={onToggleChat}
-            aria-label="Meeting chat"
-            aria-expanded={chatOpen}
-            className={`relative flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-full text-white transition hover:bg-[#4D4D4D] md:h-14 md:w-14 ${
-              chatOpen ? "bg-[#4D4D4D]" : "bg-[#3D3D3D]"
-            }`}
+        <MeetingControlButton
+          onClick={onToggleCamera}
+          active={isCameraOff}
+          label={isCameraOff ? "Turn on camera" : "Turn off camera"}
+          tooltip={isCameraOff ? "Start Video" : "Stop Video"}
+        >
+          {isCameraOff ? (
+            <VideoOff className="h-5 w-5" aria-hidden />
+          ) : (
+            <Video className="h-5 w-5" aria-hidden />
+          )}
+        </MeetingControlButton>
+
+        {canScreenShare && (
+          <MeetingControlButton
+            onClick={onToggleScreenShare}
+            active={isSharingScreen}
+            activeStyle="primary"
+            label={
+              isSharingScreen ? "Stop screen sharing" : "Share your screen"
+            }
+            tooltip="Share Screen"
           >
-            <MessageSquare className="h-5 w-5 md:h-6 md:w-6" />
-            {chatUnreadCount > 0 && (
+            {isSharingScreen ? (
+              <MonitorOff className="h-5 w-5" aria-hidden />
+            ) : (
+              <Monitor className="h-5 w-5" aria-hidden />
+            )}
+          </MeetingControlButton>
+        )}
+
+        {isHost && (
+          <>
+            <MeetingControlButton
+              onClick={copyMeetingLink}
+              label="Copy meeting link"
+              tooltip="Copy Meeting Link"
+            >
+              <Copy className="h-5 w-5" aria-hidden />
+            </MeetingControlButton>
+
+            <MeetingControlButton
+              onClick={shareMeetingLink}
+              label="Share meeting link"
+              tooltip="Share Meeting Link"
+            >
+              <Share2 className="h-5 w-5" aria-hidden />
+            </MeetingControlButton>
+          </>
+        )}
+
+        <MeetingControlButton
+          onClick={onToggleChat}
+          active={chatOpen}
+          activeStyle="primary"
+          label="Meeting chat"
+          tooltip="Open Chat"
+          ariaExpanded={chatOpen}
+          badge={
+            chatUnreadCount > 0 ? (
               <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold">
                 {chatUnreadCount > 9 ? "9+" : chatUnreadCount}
               </span>
-            )}
-          </button>
+            ) : undefined
+          }
+        >
+          <MessageSquare className="h-5 w-5" aria-hidden />
+        </MeetingControlButton>
 
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setParticipantsOpen((open) => !open)}
-              aria-label={`Participants (${participantCount})`}
-              aria-expanded={participantsOpen}
-              className={`relative flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-full text-white transition hover:bg-[#4D4D4D] md:h-14 md:w-14 ${
-                participantsOpen ? "bg-[#4D4D4D]" : "bg-[#3D3D3D]"
-              }`}
-            >
-              <Users className="h-5 w-5 md:h-6 md:w-6" />
+        <div className="relative shrink-0">
+          <MeetingControlButton
+            onClick={() => setParticipantsOpen((open) => !open)}
+            active={participantsOpen}
+            activeStyle="primary"
+            label={`Participants (${participantCount})`}
+            tooltip="Participants"
+            ariaExpanded={participantsOpen}
+            badge={
               <span className="absolute -bottom-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-zoom-primary px-1 text-[10px] font-semibold text-white">
                 {participantCount}
               </span>
-            </button>
-            <ParticipantsPanel
-              open={participantsOpen}
-              onClose={() => setParticipantsOpen(false)}
-              participants={participants}
-              isHost={isHost}
-              onMuteAll={onMuteAll}
-              onRemoveParticipant={onRemoveParticipant}
-              pinnedPeerId={pinnedPeerId}
-              onTogglePin={onTogglePin}
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={onLeave}
-            className="flex min-h-[48px] items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 md:px-6"
+            }
           >
-            <Phone className="h-4 w-4 rotate-[135deg]" />
-            <span className="hidden md:inline">Leave</span>
-          </button>
+            <Users className="h-5 w-5" aria-hidden />
+          </MeetingControlButton>
+          <ParticipantsPanel
+            open={participantsOpen}
+            onClose={() => setParticipantsOpen(false)}
+            participants={participants}
+            isHost={isHost}
+            onMuteAll={onMuteAll}
+            onRemoveParticipant={onRemoveParticipant}
+            pinnedPeerId={pinnedPeerId}
+            onTogglePin={onTogglePin}
+          />
         </div>
 
-        <div className="hidden w-24 md:block" aria-hidden />
+        <MeetingControlButton
+          onClick={onLeave}
+          activeStyle="leave"
+          label="Leave meeting"
+          tooltip="Leave Meeting"
+          className="!h-10 !w-auto !px-4 sm:!h-11 sm:!px-5"
+        >
+          <Phone className="h-5 w-5 rotate-[135deg]" aria-hidden />
+        </MeetingControlButton>
       </div>
 
-      <div className="border-t border-[#3D3D3D]/60 px-3 py-1 text-center text-xs text-[#747487] md:hidden">
+      <div className="border-t border-[#3D3D3D]/60 px-3 py-1.5 text-center text-[11px] text-[#747487] md:hidden">
         <span className="font-mono text-white">{meetingCode}</span>
         <span> · {time}</span>
       </div>

@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import ZoomLogo from "@/components/ZoomLogo";
 
 interface PreJoinProps {
   meetingCode: string;
@@ -113,6 +114,9 @@ export default function PreJoin({
         </div>
 
         <div className="flex w-full flex-col justify-center gap-4 md:w-1/2">
+          <div className="flex justify-center">
+            <ZoomLogo size="lg" />
+          </div>
           <p className="text-center text-sm text-[#747487]">
             You are about to join
           </p>

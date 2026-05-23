@@ -19,6 +19,51 @@ interface VideoGridProps {
   onTogglePin?: (peerId: string) => void;
 }
 
+function getParticipantGridLayout(count: number): {
+  className: string;
+  itemClass: (index: number) => string;
+} {
+  const base =
+    "grid h-full min-h-0 w-full max-w-full flex-1 gap-1.5 p-1.5 sm:gap-2 sm:p-2";
+
+  switch (count) {
+    case 1:
+      return {
+        className: `${base} grid-cols-1 grid-rows-1`,
+        itemClass: () => "min-h-0 h-full w-full",
+      };
+    case 2:
+      return {
+        className: `${base} grid-cols-1 grid-rows-2 sm:grid-cols-2 sm:grid-rows-1`,
+        itemClass: () => "min-h-0 h-full w-full",
+      };
+    case 3:
+      return {
+        className: `${base} grid-cols-2 grid-rows-2 sm:grid-cols-3 sm:grid-rows-1`,
+        itemClass: (index) =>
+          index === 2
+            ? "col-span-2 min-h-0 h-full w-full sm:col-span-1"
+            : "min-h-0 h-full w-full",
+      };
+    case 4:
+      return {
+        className: `${base} grid-cols-2 grid-rows-2`,
+        itemClass: () => "min-h-0 h-full w-full",
+      };
+    case 5:
+    case 6:
+      return {
+        className: `${base} grid-cols-2 grid-rows-3 sm:grid-cols-3 sm:grid-rows-2`,
+        itemClass: () => "min-h-0 h-full w-full",
+      };
+    default:
+      return {
+        className: `${base} grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 auto-rows-fr`,
+        itemClass: () => "min-h-0 h-full w-full min-h-[120px] sm:min-h-0",
+      };
+  }
+}
+
 function SpotlightLayout({
   mainStream,
   mainName,
@@ -43,8 +88,8 @@ function SpotlightLayout({
   onTogglePin?: (peerId: string) => void;
 }) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-2 p-2 md:flex-row md:gap-2 md:p-3">
-      <div className="min-h-[50vh] flex-1 overflow-hidden rounded-lg bg-black transition-all duration-300 md:min-h-0">
+    <div className="flex h-full min-h-0 w-full max-w-full flex-1 flex-col gap-1.5 p-1.5 sm:flex-row sm:gap-2 sm:p-2">
+      <div className="min-h-0 flex-1 overflow-hidden rounded-lg bg-black">
         <VideoTile
           stream={mainStream}
           name={mainName}
@@ -56,9 +101,10 @@ function SpotlightLayout({
           isPinned={mainIsPinned}
           onTogglePin={onTogglePin}
           showPinMenu={!mainIsScreen && !mainIsLocal}
+          fill
         />
       </div>
-      <div className="flex h-[120px] shrink-0 flex-row gap-2 overflow-x-auto md:h-auto md:w-[120px] md:flex-col md:overflow-y-auto lg:w-[180px]">
+      <div className="flex h-[22dvh] max-h-[28dvh] shrink-0 flex-row gap-1.5 overflow-x-auto overscroll-x-contain sm:h-auto sm:max-h-none sm:w-[100px] sm:flex-col sm:overflow-y-auto md:w-[120px] lg:w-[160px]">
         {sidebarTiles}
       </div>
     </div>
@@ -93,7 +139,14 @@ export default function VideoGrid({
   const renderSidebarTile = (
     key: string,
     props: React.ComponentProps<typeof VideoTile>
-  ) => <VideoTile key={key} small {...props} />;
+  ) => (
+    <div
+      key={key}
+      className="h-full min-h-[88px] w-[min(42vw,140px)] shrink-0 sm:min-h-[72px] sm:w-full"
+    >
+      <VideoTile small fill {...props} />
+    </div>
+  );
 
   if (screenSharingPeerId) {
     const mainStream = isLocalSharing
@@ -193,46 +246,39 @@ export default function VideoGrid({
     }
   }
 
-  let gridClass =
-    "grid h-full min-h-0 w-full flex-1 gap-2 p-2 sm:gap-3 sm:p-3 content-start sm:content-center items-stretch auto-rows-min sm:auto-rows-fr overflow-y-auto overscroll-contain";
+  const { className: gridClass, itemClass } = getParticipantGridLayout(count);
 
-  if (count === 1) {
-    gridClass +=
-      " grid-cols-1 place-items-center [&>*]:min-h-[min(50dvh,360px)] [&>*]:max-h-[70dvh] [&>*]:w-full [&>*]:max-w-3xl";
-  } else if (count === 2) {
-    gridClass +=
-      " grid-cols-1 sm:grid-cols-2 [&>*]:min-h-[200px] sm:[&>*]:min-h-0";
-  } else if (count <= 4) {
-    gridClass += " grid-cols-2 [&>*]:min-h-[140px] sm:[&>*]:min-h-0";
-  } else {
-    gridClass +=
-      " grid-cols-2 lg:grid-cols-3 [&>*]:min-h-[120px] sm:[&>*]:min-h-[140px]";
-  }
+  const tiles: React.ComponentProps<typeof VideoTile>[] = [
+    {
+      stream: localStream,
+      name: localName,
+      muted: isMuted,
+      cameraOff: isCameraOff,
+      isSharingScreen: isSharingScreen,
+      isLocal: true,
+      fill: true,
+    },
+    ...Array.from(peers.entries()).map(([peerId, peer]) => ({
+      stream: peer.stream,
+      name: peer.name,
+      muted: peer.muted,
+      cameraOff: peer.cameraOff,
+      isSharingScreen: peer.screenSharing,
+      isLocal: false,
+      peerId,
+      isPinned: pinnedPeerId === peerId,
+      onTogglePin,
+      showPinMenu: true,
+      fill: true,
+    })),
+  ];
 
   return (
     <div className={gridClass}>
-      <VideoTile
-        stream={localStream}
-        name={localName}
-        muted={isMuted}
-        cameraOff={isCameraOff}
-        isSharingScreen={isSharingScreen}
-        isLocal
-      />
-      {Array.from(peers.entries()).map(([peerId, peer]) => (
-        <VideoTile
-          key={peerId}
-          stream={peer.stream}
-          name={peer.name}
-          muted={peer.muted}
-          cameraOff={peer.cameraOff}
-          isSharingScreen={peer.screenSharing}
-          isLocal={false}
-          peerId={peerId}
-          isPinned={pinnedPeerId === peerId}
-          onTogglePin={onTogglePin}
-          showPinMenu
-        />
+      {tiles.map((props, index) => (
+        <div key={props.peerId ?? "local"} className={itemClass(index)}>
+          <VideoTile {...props} />
+        </div>
       ))}
     </div>
   );

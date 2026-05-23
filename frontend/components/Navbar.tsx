@@ -4,7 +4,7 @@ import { signOut, useSession } from "next-auth/react";
 import { ChevronDown, Menu, Search, Settings, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
-import { getInitials } from "@/lib/utils";
+import UserAvatar from "@/components/UserAvatar";
 
 interface NavbarProps {
   onSchedule?: () => void;
@@ -23,8 +23,6 @@ export default function Navbar({ onSchedule, onJoin, onHost }: NavbarProps) {
   const name = session?.user?.name ?? "User";
   const email = session?.user?.email;
   const image = session?.user?.image;
-  const initials = getInitials(name);
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -160,19 +158,16 @@ export default function Navbar({ onSchedule, onJoin, onHost }: NavbarProps) {
               <button
                 type="button"
                 onClick={() => setMenuOpen((open) => !open)}
-                className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-zoom-purple text-sm font-semibold text-white ring-2 ring-transparent hover:ring-zoom-primary/30"
+                className="ring-2 ring-transparent transition hover:ring-zoom-primary/30"
                 title={name}
+                aria-label="Account menu"
               >
-                {image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={image}
-                    alt={name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  initials
-                )}
+                <UserAvatar
+                  name={name}
+                  imageUrl={image}
+                  className="h-8 w-8"
+                  textClassName="text-xs"
+                />
               </button>
 
               {menuOpen && (

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import MeetingChatPanel from "@/components/MeetingChatPanel";
 import MeetingControls from "@/components/MeetingControls";
+import MeetingHostInviteBar from "@/components/MeetingHostInviteBar";
 import PreJoin from "@/components/PreJoin";
 import Toast from "@/components/Toast";
 import VideoGrid from "@/components/VideoGrid";
@@ -37,6 +38,7 @@ export default function MeetingPage() {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatDraft, setChatDraft] = useState("");
   const [pinnedPeerId, setPinnedPeerId] = useState<string | null>(null);
+  const [linkCopiedToast, setLinkCopiedToast] = useState(false);
 
   const displayName = joinSession?.displayName ?? "";
   const isMeetingHost = joinSession?.isHost ?? false;
@@ -206,7 +208,14 @@ export default function MeetingPage() {
   const screenSharingPeerId = activeSpeaker;
 
   return (
-    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-zoom-navy">
+    <div className="flex h-[100dvh] max-h-[100dvh] w-full max-w-[100vw] flex-col overflow-hidden overflow-x-hidden bg-zoom-navy">
+      {linkCopiedToast && (
+        <Toast
+          message="Meeting link copied successfully"
+          variant="success"
+          onDismiss={() => setLinkCopiedToast(false)}
+        />
+      )}
       {shareError && (
         <Toast
           message={shareError}
@@ -233,8 +242,17 @@ export default function MeetingPage() {
           {rtcError}
         </div>
       )}
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
-        <div className="min-h-0 min-w-0 flex-1">
+      {isHost && (
+        <MeetingHostInviteBar
+          meetingCode={code}
+          onLinkCopied={() => {
+            setLinkCopiedToast(true);
+            window.setTimeout(() => setLinkCopiedToast(false), 2500);
+          }}
+        />
+      )}
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:flex-row">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <VideoGrid
             localStream={localStream}
             localCameraStream={localCameraStream}
@@ -280,6 +298,10 @@ export default function MeetingPage() {
         onToggleChat={handleToggleChat}
         pinnedPeerId={pinnedPeerId}
         onTogglePin={handleTogglePin}
+        onLinkCopied={() => {
+          setLinkCopiedToast(true);
+          window.setTimeout(() => setLinkCopiedToast(false), 2500);
+        }}
       />
     </div>
   );

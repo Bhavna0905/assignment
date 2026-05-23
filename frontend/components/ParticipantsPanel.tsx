@@ -38,7 +38,7 @@ export default function ParticipantsPanel({
       />
 
       <div
-        className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-50 flex max-h-[min(55dvh,380px)] flex-col rounded-t-2xl border border-gray-700 bg-zoom-navy shadow-xl sm:absolute sm:inset-x-auto sm:bottom-full sm:right-0 sm:mb-2 sm:max-h-80 sm:w-72 sm:rounded-xl"
+        className="fixed inset-x-0 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] z-50 flex max-h-[min(50dvh,360px)] w-full max-w-[100vw] flex-col rounded-t-2xl border border-gray-700 bg-zoom-navy shadow-xl sm:absolute sm:inset-x-auto sm:bottom-full sm:right-0 sm:mb-2 sm:max-h-80 sm:w-72 sm:rounded-xl"
         role="dialog"
         aria-label="Participants"
       >
